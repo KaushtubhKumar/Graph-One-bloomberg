@@ -1,0 +1,462 @@
+openapi: "3.0.3"
+info:
+  title: GraphOne API
+  description: |
+    Intelligence layer for the AI economy — companies, investors, founders, products, funding rounds, and news.
+    
+    **Authentication**: Write operations (POST, PATCH, DELETE) require an `X-API-Key` header.
+    **Rate Limiting**: 100 requests per minute per IP.
+    **Response shape**: All responses follow `{ data, meta }` on success or `{ error: { code, message } }` on failure.
+  version: "1.0.0"
+  contact:
+    name: GraphOne Engineering
+
+servers:
+  - url: http://localhost:4000
+    description: Local development
+  - url: https://your-deployed-url.railway.app
+    description: Production
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string, example: "NOT_FOUND" }
+            message: { type: string, example: "Company 'openai' not found." }
+
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        page_size: { type: integer }
+        total: { type: integer }
+
+    Company:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        category: { type: string }
+        stage: { type: string }
+        founded_year: { type: integer }
+        hq_city: { type: string }
+        hq_country: { type: string }
+        logo_url: { type: string }
+        website: { type: string }
+        is_unicorn: { type: boolean }
+        valuation: { type: integer }
+        growth_score: { type: number }
+        total_funding_usd: { type: integer }
+        employee_count: { type: integer }
+        last_funding_at: { type: string, format: date-time }
+        data_confidence_score: { type: number }
+        last_scraped_at: { type: string, format: date-time }
+
+    Investor:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        type: { type: string, enum: [VC, Angel, Corporate, Family_Office] }
+        bio: { type: string }
+        aum: { type: integer }
+        portfolio_count: { type: integer }
+        avg_check_size: { type: integer }
+        fund_number: { type: integer }
+        stage_focus: { type: array, items: { type: string } }
+        sector_focus: { type: array, items: { type: string } }
+        location: { type: string }
+        logo_url: { type: string }
+
+    FundingRound:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        company_id: { type: string, format: uuid }
+        round_type: { type: string }
+        amount_usd: { type: integer }
+        currency: { type: string }
+        announced_date: { type: string, format: date }
+        lead_investor_id: { type: string, format: uuid }
+
+    Founder:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        title: { type: string }
+        company_id: { type: string, format: uuid }
+        bio: { type: string }
+        twitter: { type: string }
+        linkedin: { type: string }
+        location: { type: string }
+        photo_url: { type: string }
+
+    Product:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        company_id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        category: { type: string }
+        launch_date: { type: string, format: date }
+        upvotes: { type: integer }
+        website_url: { type: string }
+
+    NewsArticle:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        url: { type: string }
+        published_at: { type: string, format: date-time }
+        source: { type: string }
+        tag: { type: string }
+        related_company_ids: { type: array, items: { type: string, format: uuid } }
+        summary: { type: string }
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+
+  /api/companies:
+    get:
+      summary: List companies
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: page_size
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: stage
+          schema: { type: string }
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: country
+          schema: { type: string }
+        - in: query
+          name: is_unicorn
+          schema: { type: boolean }
+        - in: query
+          name: sort
+          schema: { type: string, enum: [name_asc, name_desc, founded_desc, funded_desc, recent_funding, trending] }
+      responses:
+        "200":
+          description: List of companies
+    post:
+      summary: Create a company
+      security: [{ ApiKeyAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Company" }
+      responses:
+        "201":
+          description: Created
+
+  /api/companies/trending:
+    get:
+      summary: Top 10 trending companies by computed score (cached 5 min)
+      responses:
+        "200":
+          description: Trending companies with trending_score field
+
+  /api/companies/{slug}:
+    get:
+      summary: Company full profile
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Company with funding rounds expanded
+        "404":
+          description: Not found
+    patch:
+      summary: Update a company
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Updated
+    delete:
+      summary: Delete a company
+      security: [{ ApiKeyAuth: [] }]
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "204":
+          description: Deleted
+
+  /api/companies/{slug}/funding:
+    get:
+      summary: Funding timeline for a company
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Funding rounds ordered chronologically
+
+  /api/companies/{slug}/products:
+    get:
+      summary: Products by company
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product list
+
+  /api/companies/{slug}/graph:
+    get:
+      summary: 1-hop ecosystem graph (investors, products, competitors)
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Graph data
+
+  /api/investors:
+    get:
+      summary: List investors
+      parameters:
+        - in: query
+          name: type
+          schema: { type: string }
+        - in: query
+          name: focus_area
+          schema: { type: string }
+      responses:
+        "200":
+          description: Investor list
+    post:
+      summary: Create investor
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "201":
+          description: Created
+
+  /api/investors/most-active:
+    get:
+      summary: Investors ranked by deal count in last 90 days (cached)
+      responses:
+        "200":
+          description: Most active investors
+
+  /api/investors/{slug}:
+    get:
+      summary: Investor full profile
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Investor with portfolio
+
+  /api/investors/{slug}/investments:
+    get:
+      summary: Paginated investment history
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Investment list
+
+  /api/investors/{slug}/co-investors:
+    get:
+      summary: Who this investor most often syndicates with
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Co-investor frequency list
+
+  /api/founders:
+    get:
+      summary: List founders
+      responses:
+        "200":
+          description: Founder list
+    post:
+      summary: Create founder
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "201":
+          description: Created
+
+  /api/founders/{slug}:
+    get:
+      summary: Founder profile with linked companies
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Founder profile
+
+  /api/products:
+    get:
+      summary: List products (filter by category, sort by popular/newest)
+      responses:
+        "200":
+          description: Product list
+    post:
+      summary: Create product
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "201":
+          description: Created
+
+  /api/products/{slug}:
+    get:
+      summary: Product detail
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Product
+
+  /api/news:
+    get:
+      summary: Paginated news feed with optional tag filter
+      parameters:
+        - in: query
+          name: tag
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+      responses:
+        "200":
+          description: News articles
+    post:
+      summary: Create news article
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "201":
+          description: Created
+
+  /api/news/trending:
+    get:
+      summary: Most recent articles in the last 24h (cached 5 min)
+      responses:
+        "200":
+          description: Trending articles
+
+  /api/search:
+    get:
+      summary: Cross-entity search (companies, investors, founders, products)
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 2 }
+      responses:
+        "200":
+          description: Search results
+        "400":
+          description: Query too short
+
+  /api/feed:
+    get:
+      summary: Ranked activity feed (news + funding rounds + new companies)
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Feed items
+
+  /api/stats:
+    get:
+      summary: Platform aggregate stats (cached 10 min)
+      responses:
+        "200":
+          description: Counts and recent activity
+
+  /api/funding-rounds:
+    get:
+      summary: List funding rounds
+      responses:
+        "200":
+          description: Rounds
+    post:
+      summary: Create funding round
+      security: [{ ApiKeyAuth: [] }]
+      responses:
+        "201":
+          description: Created
+
+  /api/funding-rounds/{id}:
+    get:
+      summary: Single funding round with all relations
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Round detail

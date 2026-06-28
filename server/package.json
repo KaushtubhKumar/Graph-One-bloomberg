@@ -1,0 +1,38 @@
+{
+  "name": "graphone-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only -r dotenv/config src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node -r dotenv/config dist/server.js",
+    "seed": "ts-node-dev --transpile-only -r dotenv/config src/db/seed.ts",
+    "seed-extensions": "ts-node-dev --transpile-only -r dotenv/config src/seeds/seed-extensions.ts",
+    "validate-seed": "ts-node-dev --transpile-only --exit-child src/db/validateSeedData.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express-rate-limit": "^7.4.1",
+    "express": "^5.2.1",
+    "helmet": "^8.2.0",
+    "morgan": "^1.11.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^26.0.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^6.0.3"
+  }
+}

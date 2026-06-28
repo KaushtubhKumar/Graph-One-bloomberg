@@ -1,0 +1,26 @@
+{
+  "name": "graphone-backend",
+  "version": "1.0.0",
+  "description": "Node.js + TypeScript + Express API backed by Supabase (Postgres).",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n SERVER,CLIENT -c blue,green \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KaushtubhKumar/Graph-one.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KaushtubhKumar/Graph-one/issues"
+  },
+  "homepage": "https://github.com/KaushtubhKumar/Graph-one#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "dependencies": {
+    "express-rate-limit": "^8.5.2"
+  }
+}

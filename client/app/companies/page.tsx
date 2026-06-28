@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Search, ChevronRight, TrendingUp, Zap, Eye, ArrowRight, Sparkles } from "lucide-react";
 import { getCompanies, getTrendingCompanies, getCategoriesFromCompanies } from "@/lib/api";
 import type { Company } from "@/lib/types";
+import Logo from "@/components/shared/Logo";
 import CompanyCard from "@/components/companies/CompanyCard";
 
 const tabs = ["AI Agents", "AI Coding", "AI Search", "AI Video", "AI Voice", "AI Infrastructure", "More"];
@@ -138,20 +139,23 @@ export default function CompaniesPage() {
             {/* Floating logo cards — glassmorphism, staggered float animation */}
             <div className="hidden lg:grid grid-cols-3 gap-5 relative" aria-hidden="true">
               {[
-                { name: "Cursor", bg: "#312e81" }, { name: "OpenAI", bg: "#18181b" }, { name: "Perplexity", bg: "#1e3a5f" },
-                { name: "Anthropic", bg: "#92400e" }, { name: "Mistral", bg: "#c2410c" }, { name: "xAI", bg: "#27272a" },
+                { name: "Cursor", website: "cursor.com", bg: "#312e81" },
+                { name: "OpenAI", website: "openai.com", bg: "#18181b" },
+                { name: "Perplexity", website: "perplexity.ai", bg: "#1e3a5f" },
+                { name: "Anthropic", website: "anthropic.com", bg: "#92400e" },
+                { name: "Mistral", website: "mistral.ai", bg: "#c2410c" },
+                { name: "xAI", website: "x.ai", bg: "#27272a" },
               ].map((c, i) => (
                 <div
                   key={i}
-                  className="animate-float w-[72px] h-[72px] rounded-lg flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-1 ring-white/10"
+                  className="animate-float"
                   style={{
-                    background: c.bg,
                     marginTop: i % 3 === 1 ? "28px" : i % 3 === 2 ? "10px" : "0px",
                     animationDelay: `${i * 0.45}s`,
                     "--rot": `${(i % 2 === 0 ? -1 : 1) * 2}deg`,
                   } as React.CSSProperties}
                 >
-                  {c.name.charAt(0)}
+                  <Logo name={c.name} website={c.website} bg={c.bg} size={72} rounded="rounded-lg" theme="dark" className="shadow-lg ring-1 ring-white/10 text-2xl" />
                 </div>
               ))}
             </div>
@@ -188,9 +192,7 @@ export default function CompaniesPage() {
               {trending.slice(3).map((company) => (
                 <Link key={company.id} href={`/companies/${company.slug}`}
                   className="flex items-center gap-3 p-3 bg-ink-50 rounded-lg hover:bg-ink-100 transition-colors duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                  <div className="w-10 h-10 rounded-sm flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0" style={{ background: company.logo_bg }}>
-                    {company.name.charAt(0)}
-                  </div>
+                  <Logo name={company.name} website={company.website} bg={company.logo_bg} size={40} />
                   <div className="flex-1 min-w-0">
                     <div className="text-[14px] font-semibold text-ink-900 truncate">{company.name}</div>
                     <div className="text-meta text-ink-500">{company.category}</div>
@@ -215,9 +217,7 @@ export default function CompaniesPage() {
                 {fastestGrowing.map(company => (
                   <Link key={company.id} href={`/companies/${company.slug}`}
                     className="group flex flex-col items-center p-4 rounded-lg border border-ink-100 hover-lift text-center bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                    <div className="w-12 h-12 rounded-sm mb-3 flex items-center justify-center text-white font-bold" style={{ background: company.logo_bg }}>
-                      {company.name.charAt(0)}
-                    </div>
+                    <Logo name={company.name} website={company.website} bg={company.logo_bg} size={48} className="mb-3" />
                     <div className="text-[13px] font-semibold text-ink-900 mb-0.5 truncate w-full">{company.name}</div>
                     <div className="text-meta text-ink-500 mb-2 truncate w-full">{company.category}</div>
                     <MiniSparkline />
@@ -280,9 +280,7 @@ export default function CompaniesPage() {
                 {breakout.map(c => (
                   <Link key={c.id} href={`/companies/${c.slug}`}
                     className="flex items-center gap-3 p-2.5 bg-white rounded-sm hover:shadow-xs transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                    <div className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-meta font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
-                      {c.name.charAt(0)}
-                    </div>
+                    <Logo name={c.name} website={c.website} bg={c.logo_bg} size={36} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-semibold text-ink-900 truncate">{c.name}</div>
                       <div className="text-meta text-ink-400 truncate">{c.description.slice(0, 30)}...</div>
@@ -306,9 +304,7 @@ export default function CompaniesPage() {
                 {recentlyFunded.map(c => (
                   <Link key={c.id} href={`/companies/${c.slug}`}
                     className="flex items-center gap-3 hover:bg-white rounded-sm p-2.5 -mx-1 transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                    <div className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-meta font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
-                      {c.name.charAt(0)}
-                    </div>
+                    <Logo name={c.name} website={c.website} bg={c.logo_bg} size={36} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-semibold text-ink-900 truncate">{c.name}</div>
                       <div className="text-meta text-positive font-medium">
@@ -334,9 +330,7 @@ export default function CompaniesPage() {
                 {watchlist.map(c => (
                   <Link key={c.id} href={`/companies/${c.slug}`}
                     className="flex items-center gap-3 hover:bg-white rounded-sm p-2.5 -mx-1 transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                    <div className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-meta font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
-                      {c.name.charAt(0)}
-                    </div>
+                    <Logo name={c.name} website={c.website} bg={c.logo_bg} size={36} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-semibold text-ink-900 truncate">{c.name}</div>
                       <div className="text-meta text-ink-400 truncate">{c.description.slice(0, 35)}...</div>
@@ -359,9 +353,7 @@ export default function CompaniesPage() {
             <div className="flex items-center gap-9 overflow-x-auto scrollbar-hide">
               {unicorns.map(c => (
                 <Link key={c.id} href={`/companies/${c.slug}`} className="flex-shrink-0 flex flex-col items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 rounded-sm">
-                  <div className="w-[52px] h-[52px] rounded-sm flex items-center justify-center text-white font-bold transition-transform duration-220 ease-out group-hover:scale-105" style={{ background: c.logo_bg }}>
-                    {c.name.charAt(0)}
-                  </div>
+                  <Logo name={c.name} website={c.website} bg={c.logo_bg} size={52} className="transition-transform duration-220 ease-out group-hover:scale-105" />
                   <div className="text-[13px] font-semibold text-ink-900 text-center">{c.name}</div>
                   <div className="text-meta text-positive font-medium">{c.valuation ? `$${(c.valuation/1e9).toFixed(0)}B` : "—"}</div>
                 </Link>
@@ -386,12 +378,13 @@ export default function CompaniesPage() {
               </button>
             </div>
             <div className="flex items-center gap-9 overflow-x-auto scrollbar-hide">
-              {["OpenAI", "Anthropic", "Google DeepMind", "xAI", "Meta AI", "SSI"].map(name => (
-                <div key={name} className="flex-shrink-0 flex flex-col items-center gap-2">
-                  <div className="w-11 h-11 rounded-sm bg-white/10 ring-1 ring-white/10 flex items-center justify-center text-white text-[15px] font-bold">
-                    {name.charAt(0)}
-                  </div>
-                  <span className="text-meta text-white/60">{name}</span>
+              {[
+                { name: "OpenAI", bg: "#18181b" }, { name: "Anthropic", bg: "#92400e" }, { name: "Google DeepMind", bg: "#1e3a8a" },
+                { name: "xAI", bg: "#27272a" }, { name: "Meta AI", bg: "#1447e6" }, { name: "SSI", bg: "#3329a3" },
+              ].map(lab => (
+                <div key={lab.name} className="flex-shrink-0 flex flex-col items-center gap-2">
+                  <Logo name={lab.name} bg={lab.bg} size={44} theme="dark" className="ring-1 ring-white/10" />
+                  <span className="text-meta text-white/60">{lab.name}</span>
                 </div>
               ))}
             </div>
@@ -407,16 +400,14 @@ export default function CompaniesPage() {
             </div>
             <div className="flex items-center gap-9 overflow-x-auto scrollbar-hide">
               {[
-                { name: "Hugging Face", stars: "80K" },
-                { name: "Mistral AI", stars: "18K" },
-                { name: "Ollama", stars: "10K" },
-                { name: "Together AI", stars: "6K" },
-                { name: "Databricks", stars: "12K" },
+                { name: "Hugging Face", bg: "#facc15", stars: "80K" },
+                { name: "Mistral AI", bg: "#c2410c", stars: "18K" },
+                { name: "Ollama", bg: "#27272a", stars: "10K" },
+                { name: "Together AI", bg: "#0e7490", stars: "6K" },
+                { name: "Databricks", bg: "#dc2626", stars: "12K" },
               ].map(item => (
                 <div key={item.name} className="flex-shrink-0 flex flex-col items-center gap-2">
-                  <div className="w-11 h-11 rounded-sm bg-white/10 ring-1 ring-white/10 flex items-center justify-center text-white text-[15px] font-bold">
-                    {item.name.charAt(0)}
-                  </div>
+                  <Logo name={item.name} bg={item.bg} size={44} theme="dark" className="ring-1 ring-white/10" />
                   <span className="text-meta text-white/70">{item.name}</span>
                   <span className="text-meta text-accent-400 font-medium tabular-nums">★ {item.stars}</span>
                 </div>

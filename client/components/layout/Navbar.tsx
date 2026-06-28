@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { Search, Menu, X, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { search as apiSearch } from "@/lib/api";
+// import GooeyNav from "@/components/shared/GooeyNav";
+import GooeyNav from "../shared/GooeyNav";
 
 const navLinks = [
   { label: "Companies", href: "/companies" },
@@ -90,25 +92,15 @@ export default function Navbar() {
             </Link>
 
             {/* Nav links */}
-            <nav className="hidden lg:flex items-center gap-1" aria-label="Primary">
-              {navLinks.map(link => {
-                const active = pathname.startsWith(link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`relative px-3.5 py-2 rounded-sm text-[14px] font-medium transition-colors duration-150 ${
-                      active ? "text-ink-900" : "text-ink-500 hover:text-ink-900 hover:bg-ink-50"
-                    }`}
-                  >
-                    {link.label}
-                    {active && (
-                      <span className="absolute left-3.5 right-3.5 -bottom-[1px] h-[2px] bg-accent-500 rounded-full" />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+<div className="hidden lg:block" aria-label="Primary">
+  <GooeyNav
+    items={navLinks}
+    activeIndex={Math.max(
+      0,
+      navLinks.findIndex(link => pathname.startsWith(link.href))
+    )}
+  />
+</div>
 
             {/* Search — full bar on tablet+, icon-only trigger on mobile to prevent overflow */}
             <div ref={searchRef} className="relative flex-1 max-w-xs ml-auto hidden md:block">

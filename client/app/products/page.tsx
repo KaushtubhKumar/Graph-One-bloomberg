@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, Heart, MessageSquare, ChevronRight, Zap, Home, Rocket, Package, Wallet, Briefcase, Newspaper, TrendingUp, Mail, Trophy, Sparkles, Flame } from "lucide-react";
 import { getProducts } from "@/lib/api";
+import Logo from "@/components/shared/Logo";
 import type { Product } from "@/lib/types";
 
 const categories = ["All", "Chat", "Code", "Agents", "Image", "Voice", "Video", "Productivity"];
@@ -130,16 +131,15 @@ export default function ProductsPage() {
                 {/* Floating logos */}
                 <div className="hidden sm:grid grid-cols-3 gap-3">
                   {[
-                    { name: "OpenAI", bg: "#000" },
-                    { name: "Anthropic", bg: "#cc6600" },
-                    { name: "Cursor", bg: "#1a1a2e" },
-                    { name: "Midjourney", bg: "#1a1a1a" },
-                    { name: "Perplexity", bg: "#1e3a5f" },
-                    { name: "Runway", bg: "#0d1117" },
+                    { name: "OpenAI", website: "openai.com", bg: "#000" },
+                    { name: "Anthropic", website: "anthropic.com", bg: "#cc6600" },
+                    { name: "Cursor", website: "cursor.com", bg: "#1a1a2e" },
+                    { name: "Midjourney", website: "midjourney.com", bg: "#1a1a1a" },
+                    { name: "Perplexity", website: "perplexity.ai", bg: "#1e3a5f" },
+                    { name: "Runway", website: "runwayml.com", bg: "#0d1117" },
                   ].map((c, i) => (
-                    <div key={i} className={`w-14 h-14 rounded-lg flex items-center justify-center text-white font-bold shadow-md ${i % 2 === 1 ? "mt-4" : ""}`}
-                      style={{ background: c.bg }}>
-                      {c.name.charAt(0)}
+                    <div key={i} className={i % 2 === 1 ? "mt-4" : ""}>
+                      <Logo name={c.name} website={c.website} bg={c.bg} size={56} rounded="rounded-lg" className="shadow-md" />
                     </div>
                   ))}
                 </div>
@@ -183,9 +183,7 @@ export default function ProductsPage() {
                   <span className="text-meta font-semibold text-ink-500">Product of the Day</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-sm flex items-center justify-center text-white font-bold flex-shrink-0" style={{ background: productOfDay.bg }}>
-                    {productOfDay.name.charAt(0)}
-                  </div>
+                  <Logo name={productOfDay.name} website="cursor.com" bg={productOfDay.bg} size={48} />
                   <div className="min-w-0">
                     <div className="font-bold text-ink-900">{productOfDay.name}</div>
                     <div className="text-meta text-ink-400">{productOfDay.desc}</div>
@@ -222,10 +220,7 @@ export default function ProductsPage() {
               <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
                 {popularNow.map(p => (
                   <div key={p.id} className="flex-shrink-0 flex flex-col items-center gap-1.5 p-3 border border-ink-100 rounded-lg hover-lift cursor-pointer bg-white">
-                    <div className="w-10 h-10 rounded-sm flex items-center justify-center text-white font-bold text-[14px]"
-                      style={{ background: p.logo_bg || "#333" }}>
-                      {p.name.charAt(0)}
-                    </div>
+                    <Logo name={p.name} website={p.website_url} bg={p.logo_bg || "#333"} size={40} />
                     <span className="text-meta font-medium text-ink-700">{p.name}</span>
                     <span className="text-meta text-ink-400">{p.category || "AI Tool"}</span>
                   </div>
@@ -262,10 +257,7 @@ export default function ProductsPage() {
                     </div>
                   )}
                   <div className="flex items-center gap-4 py-4 px-2 border-b border-ink-100 hover:bg-ink-50/50 rounded-sm transition-colors duration-150 group cursor-pointer">
-                    <div className="w-12 h-12 rounded-sm flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-                      style={{ background: product.logo_bg }}>
-                      {product.name.charAt(0)}
-                    </div>
+                    <Logo name={product.name} website={product.website_url} bg={product.logo_bg} size={48} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="font-semibold text-ink-900 text-[14px]">{product.name}</span>

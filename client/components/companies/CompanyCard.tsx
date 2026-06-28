@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Sparkles, TrendingUp } from "lucide-react";
 import { type Company } from "@/lib/types";
+import Logo from "@/components/shared/Logo";
 
 function formatFunding(n: number): string {
   if (n >= 1e9) return `$${(n / 1e9).toFixed(1)}B`;
@@ -28,17 +29,6 @@ function CategoryPill({ label }: { label: string }) {
   );
 }
 
-function Logo({ name, bg, size = 40 }: { name: string; bg: string; size?: number }) {
-  return (
-    <div
-      className="rounded-sm flex items-center justify-center text-white font-bold flex-shrink-0"
-      style={{ background: bg, width: size, height: size, fontSize: size * 0.4 }}
-    >
-      {name.charAt(0)}
-    </div>
-  );
-}
-
 export default function CompanyCard({ company, rank, variant = "default" }: Props) {
   if (variant === "hero") {
     return (
@@ -48,9 +38,7 @@ export default function CompanyCard({ company, rank, variant = "default" }: Prop
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/0" />
         <div className="relative p-5 h-48 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-sm bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-bold text-base ring-1 ring-white/20">
-              {company.name.charAt(0)}
-            </div>
+            <Logo name={company.name} website={company.website} bg={company.logo_bg} size={40} className="ring-1 ring-white/20" />
             {rank && (
               <span className="text-meta text-white/70 font-semibold tabular-nums">#{rank}</span>
             )}
@@ -80,7 +68,7 @@ export default function CompanyCard({ company, rank, variant = "default" }: Prop
     return (
       <Link href={`/companies/${company.slug}`}
         className="flex items-center gap-3 p-3 rounded-sm hover:bg-ink-50 transition-colors duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-        <Logo name={company.name} bg={company.logo_bg} size={36} />
+        <Logo name={company.name} website={company.website} bg={company.logo_bg} size={36} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-[14px] font-semibold text-ink-900 truncate">{company.name}</span>
@@ -103,9 +91,7 @@ export default function CompanyCard({ company, rank, variant = "default" }: Prop
             <span className="text-white font-black text-5xl opacity-15 select-none">{company.name.charAt(0)}</span>
           </div>
           <div className="absolute bottom-3 left-3">
-            <div className="w-10 h-10 rounded-sm bg-white/15 backdrop-blur-sm ring-1 ring-white/25 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">{company.name.charAt(0)}</span>
-            </div>
+            <Logo name={company.name} website={company.website} bg={company.logo_bg} size={40} className="ring-1 ring-white/25" />
           </div>
           {company.is_unicorn && (
             <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center" aria-label="Unicorn company">
@@ -133,7 +119,7 @@ export default function CompanyCard({ company, rank, variant = "default" }: Prop
   return (
     <Link href={`/companies/${company.slug}`}
       className="flex items-center gap-3 sm:gap-4 p-4 rounded-lg border border-ink-100 hover-lift bg-white group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-      <Logo name={company.name} bg={company.logo_bg} size={48} />
+      <Logo name={company.name} website={company.website} bg={company.logo_bg} size={48} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="font-semibold text-[15px] text-ink-900 truncate max-w-[140px] sm:max-w-none">{company.name}</span>

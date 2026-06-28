@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Search, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
 import { getInvestors } from "@/lib/api";
 import type { Investor } from "@/lib/types";
+import Logo from "@/components/shared/Logo";
 
 const investorCollections = [
   { title: "Investors Backing AI Agents", count: 26, icon: "🤖", bg: "#1e3a8a" },
@@ -132,13 +133,17 @@ export default function InvestorsPage() {
             {/* Floating investor cards */}
             <div className="hidden lg:grid grid-cols-3 gap-5" aria-hidden="true">
               {[
-                { name: "a16z", bg: "#3329a3" }, { name: "Sequoia", bg: "#1e3a5f" }, { name: "Lightspeed", bg: "#065f46" },
-                { name: "Catalyst", bg: "#292a3a" }, { name: "Khosla", bg: "#9a3412" }, { name: "Accel", bg: "#4035c9" },
+                { name: "a16z", website: "a16z.com", bg: "#3329a3" },
+                { name: "Sequoia", website: "sequoiacap.com", bg: "#1e3a5f" },
+                { name: "Lightspeed", website: "lsvp.com", bg: "#065f46" },
+                { name: "Catalyst", bg: "#292a3a" },
+                { name: "Khosla", website: "khoslaventures.com", bg: "#9a3412" },
+                { name: "Accel", website: "accel.com", bg: "#4035c9" },
               ].map((c, i) => (
                 <div key={i}
-                  className="animate-float w-[72px] h-[72px] rounded-lg flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-1 ring-white/10"
-                  style={{ background: c.bg, marginTop: i % 3 === 1 ? "28px" : i % 3 === 2 ? "10px" : "0px", animationDelay: `${i * 0.45}s`, "--rot": `${(i % 2 === 0 ? -1 : 1) * 2}deg` } as React.CSSProperties}>
-                  {c.name.charAt(0)}
+                  className="animate-float"
+                  style={{ marginTop: i % 3 === 1 ? "28px" : i % 3 === 2 ? "10px" : "0px", animationDelay: `${i * 0.45}s`, "--rot": `${(i % 2 === 0 ? -1 : 1) * 2}deg` } as React.CSSProperties}>
+                  <Logo name={c.name} website={c.website} bg={c.bg} size={72} rounded="rounded-lg" theme="dark" className="shadow-lg ring-1 ring-white/10" />
                 </div>
               ))}
             </div>
@@ -154,9 +159,9 @@ export default function InvestorsPage() {
             {investors.map(inv => (
               <Link key={inv.id} href={`/investors/${inv.slug}`}
                 className="group flex flex-col rounded-lg overflow-hidden border border-ink-100 hover-lift bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                <div className="h-20 relative flex items-center justify-center text-white font-black text-2xl overflow-hidden" style={{ background: inv.logo_bg }}>
+                <div className="h-20 relative flex items-center justify-center overflow-hidden" style={{ background: inv.logo_bg }}>
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/20" />
-                  <span className="relative">{inv.name.charAt(0)}</span>
+                  <Logo name={inv.name} website={inv.website} bg={inv.logo_bg} size={44} theme="dark" className="relative" />
                 </div>
                 <div className="p-3 bg-white flex-1 flex flex-col">
                   <div className="text-[13px] font-semibold text-ink-900 mb-1.5 truncate">{inv.name}</div>
@@ -214,9 +219,7 @@ export default function InvestorsPage() {
             {investors.slice(0, 4).map(inv => (
               <div key={inv.id} className="border border-ink-100 rounded-lg p-4 hover-lift bg-white">
                 <div className="flex items-center gap-3 mb-3.5">
-                  <div className="w-10 h-10 rounded-sm flex items-center justify-center text-white font-bold flex-shrink-0" style={{ background: inv.logo_bg }}>
-                    {inv.name.charAt(0)}
-                  </div>
+                  <Logo name={inv.name} website={inv.website} bg={inv.logo_bg} size={40} />
                   <div className="min-w-0">
                     <div className="text-[14px] font-semibold text-ink-900 truncate">{inv.name}</div>
                     <div className="text-meta text-ink-400">{inv.portfolio_count} portfolio companies</div>

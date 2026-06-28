@@ -1,135 +1,63 @@
 "use client";
+
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 const columns = [
-  { title: "Platform",   links: ["AI Startups", "AI Products", "Investors", "Funding", "Jobs", "News"] },
-  { title: "Resources",  links: ["Research", "Collections", "Blog", "Help Center"] },
-  { title: "Company",    links: ["About", "Careers", "Press", "Contact"] },
+  { title: "Platform", links: ["AI Startups", "AI Products", "Investors", "Funding", "Jobs", "News"] },
+  { title: "Resources", links: ["Research", "Collections", "Blog", "Help Center"] },
+  { title: "Company", links: ["About", "Careers", "Press", "Contact"] },
 ];
 
 export default function Footer() {
   return (
-    <footer style={{
-      borderTop: "1px solid var(--hairline)",
-      background: "var(--canvas)",
-      marginTop: 0,
-    }}>
-      {/* Newsletter bar */}
-      <div style={{
-        borderBottom: "1px solid var(--hairline)",
-        background: "var(--surface-1)",
-      }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 24px" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
-            <div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 4, letterSpacing: "-0.3px" }}>
-                Stay ahead in AI
-              </p>
-              <p style={{ fontSize: 13, color: "var(--ink-muted)" }}>
-                Weekly intelligence on companies, funding rounds, and market signals.
-              </p>
+    <footer className="border-t border-ink-100 bg-ink-25">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-7 h-7 rounded-sm bg-accent-500 flex items-center justify-center text-white text-xs font-bold">G</div>
+              <span className="font-semibold text-[15px] text-ink-900 tracking-tight">GraphOne</span>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                style={{
-                  background: "var(--surface-2)", border: "1px solid var(--hairline)",
-                  borderRadius: "var(--r-pill)", padding: "9px 16px",
-                  fontSize: 13, color: "var(--ink)", outline: "none",
-                  width: 220,
-                }}
-                placeholder="Enter your email"
-                onFocus={e => { e.target.style.borderColor = "var(--surface-3)"; }}
-                onBlur={e  => { e.target.style.borderColor = "var(--hairline)"; }}
-              />
-              <button className="btn-accent" style={{ padding: "9px 18px", fontSize: 13 }}>
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main footer grid */}
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "48px 24px 32px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 32 }}>
-
-          {/* Brand */}
-          <div style={{ gridColumn: "span 1" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <div style={{
-                width: 24, height: 24, borderRadius: "var(--r-sm)",
-                background: "var(--accent)", display: "flex", alignItems: "center",
-                justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 800,
-              }}>G</div>
-              <span style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)", letterSpacing: "-0.2px" }}>
-                graph<span style={{ color: "var(--ink-muted)", fontWeight: 400 }}>one</span>
-              </span>
-            </div>
-            <p style={{ fontSize: 12, color: "var(--ink-muted)", lineHeight: 1.6, maxWidth: 180 }}>
-              The global intelligence layer for the AI economy.
-            </p>
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            <p className="text-meta text-ink-500 leading-relaxed">The global intelligence layer for the AI economy.</p>
+            <div className="flex gap-2 mt-5">
               {["𝕏", "in", "◎"].map((s, i) => (
-                <button key={i} style={{
-                  width: 30, height: 30, borderRadius: "var(--r-full)",
-                  border: "1px solid var(--hairline)",
-                  background: "transparent",
-                  color: "var(--ink-muted)", fontSize: 11,
-                  cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                  transition: "border-color var(--dur-fast), color var(--dur-fast)",
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink-dim)"; e.currentTarget.style.color = "var(--ink)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-muted)"; }}
-                >{s}</button>
+                <button key={i} aria-label="Social link" className="w-8 h-8 rounded-sm border border-ink-200 flex items-center justify-center text-[13px] text-ink-500 hover:border-ink-400 hover:text-ink-900 transition-colors duration-150">{s}</button>
               ))}
             </div>
           </div>
-
-          {/* Link columns */}
           {columns.map(col => (
             <div key={col.title}>
-              <h4 style={{
-                fontSize: 11, fontWeight: 600, color: "var(--ink-dim)",
-                letterSpacing: "0.8px", textTransform: "uppercase",
-                marginBottom: 14,
-              }}>{col.title}</h4>
-              <ul style={{ listStyle: "none" }}>
+              <h4 className="text-meta text-ink-900 mb-4 uppercase tracking-wide font-semibold">{col.title}</h4>
+              <ul className="space-y-2.5">
                 {col.links.map(l => (
-                  <li key={l} style={{ marginBottom: 10 }}>
-                    <Link href="#" style={{
-                      fontSize: 13, color: "var(--ink-muted)",
-                      textDecoration: "none",
-                      transition: "color var(--dur-fast)",
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.color = "var(--ink)"}
-                      onMouseLeave={e => e.currentTarget.style.color = "var(--ink-muted)"}
-                    >{l}</Link>
-                  </li>
+                  <li key={l}><Link href="#" className="text-[14px] text-ink-500 hover:text-ink-900 transition-colors duration-150">{l}</Link></li>
                 ))}
               </ul>
             </div>
           ))}
+          <div>
+            <h4 className="text-meta text-ink-900 mb-4 uppercase tracking-wide font-semibold">Stay ahead in AI</h4>
+            <p className="text-[14px] text-ink-500 mb-4 leading-relaxed">Get weekly updates on new tools and trends.</p>
+            <form className="flex flex-col gap-2" onSubmit={e => e.preventDefault()}>
+              <input
+                type="email"
+                required
+                aria-label="Email address"
+                className="text-[14px] border border-ink-200 rounded-sm px-3.5 h-10 outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition-all duration-150 bg-white"
+                placeholder="you@company.com"
+              />
+              <button className="flex items-center justify-center gap-1.5 h-10 bg-ink-900 text-white text-[14px] font-medium rounded-sm hover:bg-ink-800 transition-colors duration-150">
+                Subscribe <ArrowRight size={14} />
+              </button>
+            </form>
+          </div>
         </div>
-
-        {/* Bottom bar */}
-        <div style={{
-          marginTop: 40, paddingTop: 24,
-          borderTop: "1px solid var(--hairline)",
-          display: "flex", flexWrap: "wrap",
-          alignItems: "center", justifyContent: "space-between",
-          gap: 12,
-        }}>
-          <p style={{ fontSize: 12, color: "var(--ink-dim)" }}>© 2025 GraphOne. All rights reserved.</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+        <div className="mt-12 pt-8 border-t border-ink-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-meta text-ink-400">© 2026 GraphOne. All rights reserved.</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 justify-center">
             {["About", "Advertise", "API", "Newsletter", "Blog", "Privacy", "Terms", "Contact"].map(l => (
-              <Link key={l} href="#" style={{
-                fontSize: 12, color: "var(--ink-dim)",
-                textDecoration: "none",
-                transition: "color var(--dur-fast)",
-              }}
-                onMouseEnter={e => e.currentTarget.style.color = "var(--ink-muted)"}
-                onMouseLeave={e => e.currentTarget.style.color = "var(--ink-dim)"}
-              >{l}</Link>
+              <Link key={l} href="#" className="text-meta text-ink-400 hover:text-ink-700 transition-colors duration-150">{l}</Link>
             ))}
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, ChevronRight, TrendingUp, Zap, Eye, ArrowRight } from "lucide-react";
+import { Search, ChevronRight, TrendingUp, Zap, Eye, ArrowRight, Sparkles } from "lucide-react";
 import { getCompanies, getTrendingCompanies, getCategoriesFromCompanies } from "@/lib/api";
 import type { Company } from "@/lib/types";
 import CompanyCard from "@/components/companies/CompanyCard";
@@ -9,31 +9,42 @@ import CompanyCard from "@/components/companies/CompanyCard";
 const tabs = ["AI Agents", "AI Coding", "AI Search", "AI Video", "AI Voice", "AI Infrastructure", "More"];
 const sortOptions = ["Trending", "Funding Stage", "Country", "Team Size", "More Filters"];
 
+// Numbered markers carry real information here: these sections are a guided,
+// ordered tour (trending -> growth -> emerging -> ...), not an arbitrary list,
+// so the number is left as a wayfinding device rather than decoration.
 function SectionHeader({ num, title, subtitle, viewAll = true }: { num: number; title: string; subtitle?: string; viewAll?: boolean }) {
   return (
-    <div className="flex items-start justify-between mb-4">
-      <div>
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="w-5 h-5 rounded-full bg-[#FF3B57] text-white text-xs font-bold flex items-center justify-center">{num}</span>
-          <h2 className="font-bold text-gray-900 text-base">{title}</h2>
+    <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex items-start gap-3">
+        <span className="w-6 h-6 rounded-sm bg-ink-900 text-white text-meta font-semibold flex items-center justify-center flex-shrink-0 mt-0.5 tabular-nums">{num}</span>
+        <div>
+          <h2 className="text-h2 text-ink-900">{title}</h2>
+          {subtitle && <p className="text-[14px] text-ink-500 mt-1 max-w-xl">{subtitle}</p>}
         </div>
-        {subtitle && <p className="text-sm text-gray-500 ml-7">{subtitle}</p>}
       </div>
-      {viewAll && <Link href="#" className="text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">View all</Link>}
+      {viewAll && (
+        <Link href="#" className="hidden sm:flex items-center gap-1 text-[14px] text-ink-500 hover:text-ink-900 font-medium transition-colors duration-150 flex-shrink-0">
+          View all <ChevronRight size={14} />
+        </Link>
+      )}
     </div>
   );
 }
 
-function MiniSparkline({ color }: { color: string }) {
+function MiniSparkline() {
   const pts = [20, 40, 30, 60, 45, 80, 70, 95];
-  const w = 80, h = 30;
+  const w = 72, h = 26;
   const max = Math.max(...pts), min = Math.min(...pts);
   const coords = pts.map((p, i) => `${(i / (pts.length - 1)) * w},${h - ((p - min) / (max - min)) * h}`).join(" ");
   return (
-    <svg width={w} height={h} className="opacity-70">
-      <polyline fill="none" stroke={color} strokeWidth="2" points={coords} strokeLinecap="round" strokeLinejoin="round" />
+    <svg width={w} height={h} className="opacity-80" aria-hidden="true">
+      <polyline fill="none" stroke="var(--color-positive)" strokeWidth="2" points={coords} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
+}
+
+function CardSkeleton() {
+  return <div className="skeleton rounded-lg h-44" />;
 }
 
 export default function CompaniesPage() {
@@ -69,43 +80,77 @@ export default function CompaniesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-sm text-gray-400">Loading companies…</p>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="skeleton rounded-lg h-10 w-80 mb-4" />
+          <div className="skeleton rounded-lg h-5 w-96 mb-10" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <section className="border-b border-gray-100 bg-gradient-to-br from-white via-red-50/20 to-white">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-red-50 text-[#FF3B57] text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
-                AI COMPANIES
+      {/* ============ HERO ============ */}
+      <section className="relative overflow-hidden bg-ink-900">
+        {/* Ambient gradient + grid texture, kept quiet so it reads as atmosphere, not decoration */}
+        <div className="absolute inset-0">
+          <div className="absolute -top-40 -right-32 w-[560px] h-[560px] rounded-full bg-accent-600/30 blur-[120px]" />
+          <div className="absolute top-20 -left-32 w-[420px] h-[420px] rounded-full bg-accent-500/20 blur-[100px]" />
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "44px 44px" }}
+          />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-14">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center min-w-0">
+            <div className="animate-fade-up min-w-0">
+              <div className="inline-flex items-center gap-2 glass-dark text-white/90 text-meta font-semibold px-3 py-1.5 rounded-full mb-6 ring-1 ring-white/10">
+                <Sparkles size={12} className="text-accent-400" />
+                30,000+ AI COMPANIES TRACKED
               </div>
-              <h1 className="text-4xl font-black text-gray-900 leading-tight mb-3">
-                Discover the world's<br />most innovative<br /><span className="text-[#FF3B57]">AI companies</span>
+              <h1 className="text-display text-white mb-5">
+                Discover the world's<br />most innovative<br /><span className="text-accent-400">AI companies</span>
               </h1>
-              <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm">
+              <p className="text-[17px] text-white/60 leading-relaxed mb-8 max-w-md">
                 Explore AI startups, unicorns, frontier labs, and emerging companies shaping the future of artificial intelligence.
               </p>
-              <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 max-w-md shadow-sm">
-                <Search size={16} className="text-gray-400" />
-                <input className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400" placeholder="Search companies, categories, founders, investors..." />
-                <button className="w-8 h-8 bg-[#FF3B57] rounded-lg flex items-center justify-center hover:bg-[#e0324c] transition-colors">
-                  <Search size={14} className="text-white" />
+
+              {/* Search */}
+              <div className="flex items-center gap-2 glass rounded-lg p-2 w-full max-w-lg shadow-lg ring-1 ring-white/10">
+                <Search size={18} className="text-ink-400 ml-2 flex-shrink-0" />
+                <input
+                  className="flex-1 w-full min-w-0 outline-none text-[15px] text-ink-800 placeholder-ink-400 bg-transparent"
+                  placeholder="Search companies, categories…"
+                  aria-label="Search AI companies"
+                />
+                <button className="flex-shrink-0 px-3.5 sm:px-4 h-10 bg-accent-500 rounded-sm flex items-center justify-center gap-1.5 text-white text-[14px] font-medium hover:bg-accent-600 transition-colors duration-150 shadow-accent">
+                  <Search size={15} className="sm:hidden" />
+                  <span className="hidden sm:inline">Search</span>
                 </button>
               </div>
             </div>
-            {/* Floating logos decoration */}
-            <div className="hidden lg:grid grid-cols-3 gap-4 relative">
+
+            {/* Floating logo cards — glassmorphism, staggered float animation */}
+            <div className="hidden lg:grid grid-cols-3 gap-5 relative" aria-hidden="true">
               {[
-                { name: "Cursor", bg: "#1a1a2e" }, { name: "OpenAI", bg: "#000" }, { name: "Perplexity", bg: "#1e3a5f" },
-                { name: "Anthropic", bg: "#cc6600" }, { name: "Mistral", bg: "#f97316" }, { name: "xAI", bg: "#111" },
+                { name: "Cursor", bg: "#312e81" }, { name: "OpenAI", bg: "#18181b" }, { name: "Perplexity", bg: "#1e3a5f" },
+                { name: "Anthropic", bg: "#92400e" }, { name: "Mistral", bg: "#c2410c" }, { name: "xAI", bg: "#27272a" },
               ].map((c, i) => (
-                <div key={i} className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg ${i % 3 === 1 ? "mt-6" : i % 3 === 2 ? "mt-2" : ""}`} style={{ background: c.bg }}>
+                <div
+                  key={i}
+                  className="animate-float w-[72px] h-[72px] rounded-lg flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-1 ring-white/10"
+                  style={{
+                    background: c.bg,
+                    marginTop: i % 3 === 1 ? "28px" : i % 3 === 2 ? "10px" : "0px",
+                    animationDelay: `${i * 0.45}s`,
+                    "--rot": `${(i % 2 === 0 ? -1 : 1) * 2}deg`,
+                  } as React.CSSProperties}
+                >
                   {c.name.charAt(0)}
                 </div>
               ))}
@@ -113,15 +158,15 @@ export default function CompaniesPage() {
           </div>
 
           {/* Category tabs */}
-          <div className="flex items-center gap-2 mt-8 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 mt-10 overflow-x-auto scrollbar-hide">
             {tabs.map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-shrink-0 text-sm px-4 py-2 rounded-full font-medium transition-all ${
+                className={`flex-shrink-0 text-[14px] px-4 py-2 rounded-full font-medium transition-all duration-150 ${
                   activeTab === tab
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-white text-ink-900 shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {tab}
@@ -131,70 +176,71 @@ export default function CompaniesPage() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-12">
-        {/* Trending AI Companies */}
-        <section>
-          <SectionHeader num={1} title="Trending AI Companies" subtitle="The most searched, viewed and discussed AI companies right now." />
-          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* ============ TRENDING ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <SectionHeader num={1} title="Trending AI companies" subtitle="The most searched, viewed and discussed AI companies right now." />
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {trending.slice(0, 3).map((company) => (
               <CompanyCard key={company.id} company={company} rank={company.trending_rank} variant="hero" />
             ))}
-            <div className="sm:col-span-1 lg:col-span-2 flex flex-col gap-3">
+            <div className="sm:col-span-1 lg:col-span-2 flex flex-col gap-2.5">
               {trending.slice(3).map((company) => (
                 <Link key={company.id} href={`/companies/${company.slug}`}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ background: company.logo_bg }}>
+                  className="flex items-center gap-3 p-3 bg-ink-50 rounded-lg hover:bg-ink-100 transition-colors duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+                  <div className="w-10 h-10 rounded-sm flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0" style={{ background: company.logo_bg }}>
                     {company.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-gray-900">{company.name}</div>
-                    <div className="text-xs text-gray-500">{company.category}</div>
+                    <div className="text-[14px] font-semibold text-ink-900 truncate">{company.name}</div>
+                    <div className="text-meta text-ink-500">{company.category}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-gray-500">{company.views} views</div>
-                    <div className="text-xs text-[#FF3B57]">#{company.trending_rank}</div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-meta text-ink-400">{company.views} views</div>
+                    <div className="text-meta text-accent-600 font-semibold">#{company.trending_rank}</div>
                   </div>
-                  <ChevronRight size={14} className="text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+                  <ChevronRight size={15} className="text-ink-300 group-hover:translate-x-0.5 group-hover:text-ink-500 transition-all duration-150 flex-shrink-0" />
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Fastest Growing */}
-        <section>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ============ GROWTH LEADERS ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <SectionHeader num={2} title="Fastest Growing AI Companies" subtitle="Companies showing strong momentum across key growth signals." />
+              <SectionHeader num={2} title="Fastest-growing AI companies" subtitle="Companies showing strong momentum across key growth signals." viewAll={false} />
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {fastestGrowing.map(company => (
                   <Link key={company.id} href={`/companies/${company.slug}`}
-                    className="group flex flex-col items-center p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all text-center">
-                    <div className="w-12 h-12 rounded-xl mb-2 flex items-center justify-center text-white font-bold" style={{ background: company.logo_bg }}>
+                    className="group flex flex-col items-center p-4 rounded-lg border border-ink-100 hover-lift text-center bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+                    <div className="w-12 h-12 rounded-sm mb-3 flex items-center justify-center text-white font-bold" style={{ background: company.logo_bg }}>
                       {company.name.charAt(0)}
                     </div>
-                    <div className="text-xs font-semibold text-gray-900 mb-0.5">{company.name}</div>
-                    <div className="text-xs text-gray-500 mb-2">{company.category}</div>
-                    <MiniSparkline color="#FF3B57" />
+                    <div className="text-[13px] font-semibold text-ink-900 mb-0.5 truncate w-full">{company.name}</div>
+                    <div className="text-meta text-ink-500 mb-2 truncate w-full">{company.category}</div>
+                    <MiniSparkline />
                   </Link>
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl bg-gray-900 text-white p-6 flex flex-col justify-between">
-              <div>
-                <h3 className="font-bold text-lg mb-2">Explore tomorrow's market leaders today.</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">Discover categories with the highest growth potential across the AI landscape.</p>
+            <div className="rounded-lg bg-ink-900 text-white p-7 flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-accent-500/20 blur-2xl" />
+              <div className="relative">
+                <h3 className="text-h2 text-white mb-2.5">Explore tomorrow's market leaders today.</h3>
+                <p className="text-white/60 text-[14px] leading-relaxed">Discover categories with the highest growth potential across the AI landscape.</p>
               </div>
-              <button className="mt-4 flex items-center gap-2 bg-white text-gray-900 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-gray-100 transition-colors w-fit">
-                Explore Growth Leaders <ArrowRight size={14} />
+              <button className="relative mt-5 flex items-center gap-2 bg-white text-ink-900 text-[14px] font-semibold px-4 py-2.5 rounded-sm hover:bg-ink-50 transition-colors duration-150 w-fit">
+                Explore growth leaders <ArrowRight size={14} />
               </button>
             </div>
           </div>
         </section>
 
-        {/* Emerging Startups */}
-        <section>
-          <SectionHeader num={3} title="Emerging AI Startups to Watch" subtitle="Promising early-stage companies gaining real traction." />
+        {/* ============ EMERGING ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <SectionHeader num={3} title="Emerging AI startups to watch" subtitle="Promising early-stage companies gaining real traction." />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {emerging.map(company => (
               <CompanyCard key={company.id} company={company} variant="grid" />
@@ -202,231 +248,238 @@ export default function CompaniesPage() {
           </div>
         </section>
 
-        {/* Browse by Category */}
-        <section>
-          <SectionHeader num={4} title="Browse by Category" subtitle="Explore companies by what they're building." />
+        {/* ============ CATEGORIES ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <SectionHeader num={4} title="Browse by category" subtitle="Explore companies by what they're building." viewAll={false} />
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             {categories.map(cat => (
               <Link key={cat.name} href={`/companies?category=${encodeURIComponent(cat.name)}`}
-                className="group flex flex-col items-center p-3 rounded-xl border border-gray-100 hover:border-[#FF3B57]/30 hover:bg-red-50/30 transition-all text-center">
-                <span className="text-2xl mb-2">{cat.icon}</span>
-                <div className="text-xs font-semibold text-gray-900 mb-0.5 leading-tight">{cat.name}</div>
-                <div className="text-xs text-gray-400">{cat.count.toLocaleString()} companies</div>
+                className="group flex flex-col items-center p-4 rounded-lg border border-ink-100 hover:border-accent-200 hover:bg-accent-50/40 transition-all duration-150 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+                <span className="text-2xl mb-2.5" aria-hidden="true">{cat.icon}</span>
+                <div className="text-[13px] font-semibold text-ink-900 mb-0.5 leading-tight">{cat.name}</div>
+                <div className="text-meta text-ink-400">{cat.count.toLocaleString()} {cat.count === 1 ? "company" : "companies"}</div>
               </Link>
             ))}
-            <button className="flex flex-col items-center p-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-all text-center group">
-              <span className="text-2xl mb-2">›</span>
-              <div className="text-xs font-semibold text-gray-500">More</div>
-            </button>
+            <Link href="/companies" className="flex flex-col items-center justify-center p-4 rounded-lg border border-dashed border-ink-200 hover:border-ink-300 transition-colors duration-150 text-center group">
+              <ChevronRight size={18} className="text-ink-400 mb-2.5 group-hover:translate-x-0.5 transition-transform duration-150" />
+              <div className="text-[13px] font-semibold text-ink-500">More</div>
+            </Link>
           </div>
         </section>
 
-        {/* Three columns: Breakout, Recently Funded, Startups to Watch */}
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gray-50 rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-1">
-                <Zap size={14} className="text-[#FF3B57]" />
-                <h3 className="text-sm font-bold text-gray-900">Breakout Companies</h3>
+        {/* ============ FEATURED: 3-column signal panels ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-ink-25 border border-ink-100 rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Zap size={15} className="text-accent-500" />
+                <h3 className="text-[15px] font-bold text-ink-900">Breakout companies</h3>
               </div>
-              <p className="text-xs text-gray-500 mb-4">Companies showing strong growth moves.</p>
-              <div className="space-y-2">
+              <p className="text-meta text-ink-500 mb-5">Companies showing strong growth moves.</p>
+              <div className="space-y-1.5">
                 {breakout.map(c => (
                   <Link key={c.id} href={`/companies/${c.slug}`}
-                    className="flex items-center gap-3 p-2.5 bg-white rounded-xl hover:shadow-sm transition-all group">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
+                    className="flex items-center gap-3 p-2.5 bg-white rounded-sm hover:shadow-xs transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+                    <div className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-meta font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
                       {c.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-gray-900">{c.name}</div>
-                      <div className="text-xs text-gray-400 truncate">{c.description.slice(0, 30)}...</div>
+                      <div className="text-[13px] font-semibold text-ink-900 truncate">{c.name}</div>
+                      <div className="text-meta text-ink-400 truncate">{c.description.slice(0, 30)}...</div>
                     </div>
-                    <ChevronRight size={12} className="text-gray-400" />
+                    <ChevronRight size={13} className="text-ink-300 flex-shrink-0" />
                   </Link>
                 ))}
               </div>
-              <Link href="#" className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 mt-3 font-medium">
+              <Link href="#" className="flex items-center gap-1 text-meta text-ink-500 hover:text-ink-900 mt-4 font-medium transition-colors duration-150">
                 View all <ChevronRight size={12} />
               </Link>
             </div>
 
-            <div className="bg-gray-50 rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp size={14} className="text-[#FF3B57]" />
-                <h3 className="text-sm font-bold text-gray-900">Recently Funded AI Startups</h3>
+            <div className="bg-ink-25 border border-ink-100 rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-1.5">
+                <TrendingUp size={15} className="text-positive" />
+                <h3 className="text-[15px] font-bold text-ink-900">Recently funded</h3>
               </div>
-              <p className="text-xs text-gray-500 mb-4">Latest funding announcements.</p>
-              <div className="space-y-3">
+              <p className="text-meta text-ink-500 mb-5">Latest funding announcements.</p>
+              <div className="space-y-1">
                 {recentlyFunded.map(c => (
                   <Link key={c.id} href={`/companies/${c.slug}`}
-                    className="flex items-center gap-3 hover:bg-white rounded-xl p-2 transition-all group -mx-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
+                    className="flex items-center gap-3 hover:bg-white rounded-sm p-2.5 -mx-1 transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+                    <div className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-meta font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
                       {c.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-gray-900">{c.name}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-[13px] font-semibold text-ink-900 truncate">{c.name}</div>
+                      <div className="text-meta text-positive font-medium">
                         {c.total_funding_usd >= 1e9 ? `$${(c.total_funding_usd/1e9).toFixed(0)}B` : `$${(c.total_funding_usd/1e6).toFixed(0)}M`} {c.stage}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-400">{c.last_funding_at?.slice(0, 7)}</div>
-                    <ChevronRight size={12} className="text-gray-400" />
+                    <div className="text-meta text-ink-400 flex-shrink-0">{c.last_funding_at?.slice(0, 7)}</div>
                   </Link>
                 ))}
               </div>
-              <Link href="#" className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 mt-3 font-medium">
+              <Link href="#" className="flex items-center gap-1 text-meta text-ink-500 hover:text-ink-900 mt-4 font-medium transition-colors duration-150">
                 View all <ChevronRight size={12} />
               </Link>
             </div>
 
-            <div className="bg-gray-50 rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-1">
-                <Eye size={14} className="text-[#FF3B57]" />
-                <h3 className="text-sm font-bold text-gray-900">Startups to Watch</h3>
+            <div className="bg-ink-25 border border-ink-100 rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Eye size={15} className="text-info" />
+                <h3 className="text-[15px] font-bold text-ink-900">Startups to watch</h3>
               </div>
-              <p className="text-xs text-gray-500 mb-4">High potential companies to keep an eye on.</p>
-              <div className="space-y-3">
+              <p className="text-meta text-ink-500 mb-5">High potential companies to keep an eye on.</p>
+              <div className="space-y-1">
                 {watchlist.map(c => (
                   <Link key={c.id} href={`/companies/${c.slug}`}
-                    className="flex items-center gap-3 hover:bg-white rounded-xl p-2 transition-all group -mx-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
+                    className="flex items-center gap-3 hover:bg-white rounded-sm p-2.5 -mx-1 transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+                    <div className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-meta font-bold flex-shrink-0" style={{ background: c.logo_bg }}>
                       {c.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-gray-900">{c.name}</div>
-                      <div className="text-xs text-gray-400 truncate">{c.description.slice(0, 35)}...</div>
+                      <div className="text-[13px] font-semibold text-ink-900 truncate">{c.name}</div>
+                      <div className="text-meta text-ink-400 truncate">{c.description.slice(0, 35)}...</div>
                     </div>
-                    <ChevronRight size={12} className="text-gray-400" />
+                    <ChevronRight size={13} className="text-ink-300 flex-shrink-0" />
                   </Link>
                 ))}
               </div>
-              <Link href="#" className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 mt-3 font-medium">
+              <Link href="#" className="flex items-center gap-1 text-meta text-ink-500 hover:text-ink-900 mt-4 font-medium transition-colors duration-150">
                 View all <ChevronRight size={12} />
               </Link>
             </div>
           </div>
         </section>
 
-        {/* AI Unicorns */}
-        <section>
-          <SectionHeader num={5} title="AI Unicorns" subtitle="Private companies valued at $1B+." />
-          <div className="border border-gray-100 rounded-2xl p-5">
-            <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide">
+        {/* ============ UNICORNS ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <SectionHeader num={5} title="AI unicorns" subtitle="Private companies valued at $1B+." viewAll={false} />
+          <div className="border border-ink-100 rounded-lg p-6 bg-white">
+            <div className="flex items-center gap-9 overflow-x-auto scrollbar-hide">
               {unicorns.map(c => (
-                <Link key={c.id} href={`/companies/${c.slug}`} className="flex-shrink-0 flex flex-col items-center gap-2 group">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold" style={{ background: c.logo_bg }}>
+                <Link key={c.id} href={`/companies/${c.slug}`} className="flex-shrink-0 flex flex-col items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 rounded-sm">
+                  <div className="w-[52px] h-[52px] rounded-sm flex items-center justify-center text-white font-bold transition-transform duration-220 ease-out group-hover:scale-105" style={{ background: c.logo_bg }}>
                     {c.name.charAt(0)}
                   </div>
-                  <div className="text-xs font-semibold text-gray-900 text-center">{c.name}</div>
-                  <div className="text-xs text-gray-400">{c.valuation ? `$${(c.valuation/1e9).toFixed(0)}B` : "—"}</div>
+                  <div className="text-[13px] font-semibold text-ink-900 text-center">{c.name}</div>
+                  <div className="text-meta text-positive font-medium">{c.valuation ? `$${(c.valuation/1e9).toFixed(0)}B` : "—"}</div>
                 </Link>
               ))}
-              <button className="flex-shrink-0 w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:border-gray-400 transition-colors">
-                <ChevronRight size={14} />
+              <button className="flex-shrink-0 w-9 h-9 rounded-full border border-ink-200 flex items-center justify-center text-ink-400 hover:border-ink-400 hover:text-ink-700 transition-colors duration-150" aria-label="See more unicorns">
+                <ChevronRight size={15} />
               </button>
             </div>
           </div>
         </section>
 
-        {/* Frontier AI Labs - dark section */}
-        <section className="rounded-2xl bg-gray-900 text-white px-6 py-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-sm">Frontier AI Labs</h3>
-              <p className="text-gray-400 text-xs">Organizations advancing the state of the art.</p>
-            </div>
-            <button className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:border-white/40 transition-colors">
-              <ChevronRight size={14} />
-            </button>
-          </div>
-          <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide">
-            {["OpenAI", "Anthropic", "Google DeepMind", "xAI", "Meta AI", "SSI"].map(name => (
-              <div key={name} className="flex-shrink-0 flex flex-col items-center gap-1.5">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white text-sm font-bold">
-                  {name.charAt(0)}
-                </div>
-                <span className="text-xs text-gray-400">{name}</span>
+        {/* ============ FRONTIER LABS (dark, distinct rhythm) ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <div className="rounded-lg bg-ink-900 text-white px-7 py-7">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-[15px] font-bold text-white">Frontier AI labs</h3>
+                <p className="text-white/50 text-meta mt-0.5">Organizations advancing the state of the art.</p>
               </div>
-            ))}
+              <button className="w-9 h-9 rounded-full border border-white/15 flex items-center justify-center hover:border-white/30 hover:bg-white/5 transition-colors duration-150" aria-label="See more labs">
+                <ChevronRight size={15} />
+              </button>
+            </div>
+            <div className="flex items-center gap-9 overflow-x-auto scrollbar-hide">
+              {["OpenAI", "Anthropic", "Google DeepMind", "xAI", "Meta AI", "SSI"].map(name => (
+                <div key={name} className="flex-shrink-0 flex flex-col items-center gap-2">
+                  <div className="w-11 h-11 rounded-sm bg-white/10 ring-1 ring-white/10 flex items-center justify-center text-white text-[15px] font-bold">
+                    {name.charAt(0)}
+                  </div>
+                  <span className="text-meta text-white/60">{name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Open Source AI Leaders - dark section */}
-        <section className="rounded-2xl bg-gray-800 text-white px-6 py-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-sm">Open Source AI Leaders</h3>
-              <p className="text-gray-400 text-xs">Leading the open source movement.</p>
+        {/* ============ OPEN SOURCE ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <div className="rounded-lg bg-ink-850 text-white px-7 py-7">
+            <div className="mb-6">
+              <h3 className="text-[15px] font-bold text-white">Open source AI leaders</h3>
+              <p className="text-white/50 text-meta mt-0.5">Leading the open source movement.</p>
             </div>
-          </div>
-          <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide">
-            {[
-              { name: "Hugging Face", stars: "80K" },
-              { name: "Mistral AI", stars: "18K" },
-              { name: "Ollama", stars: "10K" },
-              { name: "Together AI", stars: "6K" },
-              { name: "Databricks", stars: "12K" },
-            ].map(item => (
-              <div key={item.name} className="flex-shrink-0 flex flex-col items-center gap-1.5">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white text-sm font-bold">
-                  {item.name.charAt(0)}
+            <div className="flex items-center gap-9 overflow-x-auto scrollbar-hide">
+              {[
+                { name: "Hugging Face", stars: "80K" },
+                { name: "Mistral AI", stars: "18K" },
+                { name: "Ollama", stars: "10K" },
+                { name: "Together AI", stars: "6K" },
+                { name: "Databricks", stars: "12K" },
+              ].map(item => (
+                <div key={item.name} className="flex-shrink-0 flex flex-col items-center gap-2">
+                  <div className="w-11 h-11 rounded-sm bg-white/10 ring-1 ring-white/10 flex items-center justify-center text-white text-[15px] font-bold">
+                    {item.name.charAt(0)}
+                  </div>
+                  <span className="text-meta text-white/70">{item.name}</span>
+                  <span className="text-meta text-accent-400 font-medium tabular-nums">★ {item.stars}</span>
                 </div>
-                <span className="text-xs text-gray-300">{item.name}</span>
-                <span className="text-xs text-yellow-400">⭐ {item.stars}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Explore All Companies */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="w-5 h-5 rounded-full bg-[#FF3B57] text-white text-xs font-bold flex items-center justify-center">8</span>
-                <h2 className="font-bold text-gray-900 text-base">Explore All Companies</h2>
+        {/* ============ EXPLORE ALL ============ */}
+        <section className="py-14 border-b border-ink-100">
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-sm bg-ink-900 text-white text-meta font-semibold flex items-center justify-center flex-shrink-0 mt-0.5">8</span>
+              <div>
+                <h2 className="text-h2 text-ink-900">Explore all companies</h2>
+                <p className="text-[14px] text-ink-500 mt-1">Find, filter and discover the right companies.</p>
               </div>
-              <p className="text-sm text-gray-500 ml-7">Find, filter and discover the right companies.</p>
             </div>
-            <Link href="#" className="flex items-center gap-2 px-4 py-2 bg-[#FF3B57] text-white text-sm font-semibold rounded-xl hover:bg-[#e0324c] transition-colors">
-              Explore Companies
+            <Link href="#" className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-accent-500 text-white text-[14px] font-semibold rounded-sm hover:bg-accent-600 transition-colors duration-150 shadow-accent">
+              Explore companies
             </Link>
           </div>
           {/* Filter bar */}
-          <div className="flex items-center gap-3 mb-4 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2.5 mb-5 overflow-x-auto scrollbar-hide">
             {sortOptions.map(opt => (
-              <button key={opt} className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:border-gray-400 transition-colors bg-white">
+              <button key={opt} className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 border border-ink-200 rounded-sm text-[13px] text-ink-600 hover:border-ink-400 hover:bg-ink-50 transition-colors duration-150 bg-white">
                 {opt} <ChevronRight size={12} className="rotate-90" />
               </button>
             ))}
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-sm text-gray-500">Sort by: Trending</span>
-            </div>
+            <div className="ml-auto text-meta text-ink-500 flex-shrink-0">Sort by: Trending</div>
           </div>
           <div className="space-y-2">
             {companies.slice(0, 6).map(company => (
               <CompanyCard key={company.id} company={company} variant="default" />
             ))}
           </div>
-          <div className="text-center mt-4">
-            <span className="text-xs text-gray-400">30,000+ companies</span>
+          <div className="text-center mt-6">
+            <span className="text-meta text-ink-400">30,000+ companies</span>
           </div>
         </section>
 
-        {/* Newsletter CTA */}
-        <section className="rounded-2xl bg-gray-50 border border-gray-100 px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-[#FF3B57] flex items-center justify-center text-white font-bold flex-shrink-0">G</div>
-            <div>
-              <h3 className="font-bold text-gray-900">Be the first to discover what's next in AI</h3>
-              <p className="text-sm text-gray-500">Join thousands of builders, investors and researchers.</p>
+        {/* ============ NEWSLETTER ============ */}
+        <section className="py-14">
+          <div className="rounded-lg bg-ink-25 border border-ink-100 px-5 sm:px-8 py-9 flex flex-col sm:flex-row items-center justify-between gap-7">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-11 h-11 rounded-sm bg-accent-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-accent">G</div>
+              <div className="min-w-0">
+                <h3 className="text-[16px] font-bold text-ink-900">Be the first to discover what's next in AI</h3>
+                <p className="text-[14px] text-ink-500 mt-0.5">Join thousands of builders, investors and researchers.</p>
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <input className="flex-1 sm:w-64 text-sm border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#FF3B57]" placeholder="Enter your email" />
-            <button className="px-5 py-2.5 bg-[#FF3B57] text-white text-sm font-semibold rounded-xl hover:bg-[#e0324c] transition-colors whitespace-nowrap">
-              Get updates
-            </button>
+            <form className="flex gap-2 w-full sm:w-auto min-w-0" onSubmit={e => e.preventDefault()}>
+              <input
+                type="email"
+                required
+                aria-label="Email address"
+                className="flex-1 min-w-0 sm:w-64 text-[14px] border border-ink-200 rounded-sm px-4 h-11 outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-100 transition-all duration-150 bg-white"
+                placeholder="Enter your email"
+              />
+              <button className="flex-shrink-0 px-5 h-11 bg-ink-900 text-white text-[14px] font-semibold rounded-sm hover:bg-ink-800 transition-colors duration-150 whitespace-nowrap">
+                Get updates
+              </button>
+            </form>
           </div>
         </section>
       </div>

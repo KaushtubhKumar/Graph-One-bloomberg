@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { Sparkles, TrendingUp } from "lucide-react";
 import { type Company } from "@/lib/types";
 
 function formatFunding(n: number): string {
@@ -14,121 +15,59 @@ interface Props {
   variant?: "default" | "hero" | "compact" | "grid";
 }
 
-/* Deterministic pastel-on-dark category pill colours */
-const catStyle: Record<string, { bg: string; color: string }> = {
-  "AI Coding":          { bg: "rgba(139,92,246,0.15)",  color: "#a78bfa" },
-  "AI Search":          { bg: "rgba(59,130,246,0.15)",  color: "#60a5fa" },
-  "AI Image":           { bg: "rgba(236,72,153,0.15)",  color: "#f472b6" },
-  "AI Video":           { bg: "rgba(168,85,247,0.15)",  color: "#c084fc" },
-  "AI Voice":           { bg: "rgba(249,115,22,0.15)",  color: "#fb923c" },
-  "AI Infrastructure":  { bg: "rgba(16,185,129,0.15)",  color: "#34d399" },
-  "AI Research":        { bg: "rgba(255,59,87,0.12)",   color: "#ff6b81" },
-  "AI Models":          { bg: "rgba(234,179,8,0.15)",   color: "#facc15" },
-  "AI Education":       { bg: "rgba(6,182,212,0.15)",   color: "#22d3ee" },
-  "AI Legal":           { bg: "rgba(100,116,139,0.15)", color: "#94a3b8" },
-  "AI Content":         { bg: "rgba(20,184,166,0.15)",  color: "#2dd4bf" },
-  "AI Productivity":    { bg: "rgba(132,204,22,0.15)",  color: "#a3e635" },
-  "AI Agents":          { bg: "rgba(255,59,87,0.12)",   color: "#ff7a8a" },
-};
-const defaultCat = { bg: "rgba(255,255,255,0.06)", color: "#999" };
-
-function CatPill({ cat }: { cat: string }) {
-  const s = catStyle[cat] ?? defaultCat;
+// One consistent treatment for every category — a neutral pill with an
+// accent-tinted dot, rather than 12 hand-picked Tailwind color pairs.
+// Color is reserved for things that mean something (growth, funding); the
+// category label itself doesn't need to compete for attention with hue.
+function CategoryPill({ label }: { label: string }) {
   return (
-    <span style={{
-      fontSize: 10, fontWeight: 600,
-      padding: "2px 7px",
-      borderRadius: "var(--r-sm)",
-      background: s.bg,
-      color: s.color,
-      letterSpacing: "0.2px",
-      border: `1px solid ${s.color}22`,
-      whiteSpace: "nowrap",
-    }}>{cat}</span>
+    <span className="inline-flex items-center gap-1.5 text-meta text-ink-600 bg-ink-100 px-2.5 py-1 rounded-sm">
+      <span className="w-1.5 h-1.5 rounded-full bg-accent-500 flex-shrink-0" />
+      {label}
+    </span>
   );
 }
 
 function Logo({ name, bg, size = 40 }: { name: string; bg: string; size?: number }) {
   return (
-    <div style={{
-      width: size, height: size,
-      borderRadius: size > 36 ? "var(--r-xl)" : "var(--r-lg)",
-      background: bg,
-      flexShrink: 0,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      color: "#fff", fontWeight: 800,
-      fontSize: size * 0.36,
-      letterSpacing: "-0.5px",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-    }}>
+    <div
+      className="rounded-sm flex items-center justify-center text-white font-bold flex-shrink-0"
+      style={{ background: bg, width: size, height: size, fontSize: size * 0.4 }}
+    >
       {name.charAt(0)}
     </div>
   );
 }
 
-/* ─── HERO CARD (trending grid) ─────────────────────────────────────── */
 export default function CompanyCard({ company, rank, variant = "default" }: Props) {
-
   if (variant === "hero") {
     return (
       <Link href={`/companies/${company.slug}`}
-        style={{
-          display: "block", position: "relative",
-          borderRadius: "var(--r-xl)", overflow: "hidden",
-          height: 200,
-          background: company.logo_bg,
-          textDecoration: "none",
-          border: "1px solid rgba(255,255,255,0.06)",
-          transition: "transform var(--dur-base) var(--ease-out-expo), box-shadow var(--dur-base)",
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = "translateY(-3px)";
-          e.currentTarget.style.boxShadow = "var(--shadow-lg)";
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
-        }}
-      >
-        {/* gradient overlay */}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.05) 100%)",
-        }} />
-
-        {/* watermark letter */}
-        <div style={{
-          position: "absolute", right: -10, top: -10,
-          fontSize: 90, fontWeight: 900, color: "rgba(255,255,255,0.06)",
-          lineHeight: 1, userSelect: "none",
-        }}>{company.name.charAt(0)}</div>
-
-        <div style={{ position: "relative", padding: 16, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Logo name={company.name} bg="rgba(255,255,255,0.15)" size={36} />
+        className="group relative rounded-lg overflow-hidden block hover-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+        style={{ background: company.logo_bg }}>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/0" />
+        <div className="relative p-5 h-48 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="w-10 h-10 rounded-sm bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-bold text-base ring-1 ring-white/20">
+              {company.name.charAt(0)}
+            </div>
             {rank && (
-              <span style={{
-                fontSize: 10, fontWeight: 700,
-                color: "rgba(255,255,255,0.5)",
-                background: "rgba(0,0,0,0.3)",
-                padding: "3px 7px", borderRadius: "var(--r-pill)",
-                backdropFilter: "blur(4px)",
-              }}>#{rank}</span>
+              <span className="text-meta text-white/70 font-semibold tabular-nums">#{rank}</span>
             )}
           </div>
-
           <div>
-            <CatPill cat={company.category} />
-            <h3 style={{ color: "#fff", fontWeight: 700, fontSize: 16, letterSpacing: "-0.3px", margin: "6px 0 4px" }}>
+            <span className="inline-block text-meta text-white/80 px-2.5 py-1 rounded-sm bg-white/15 backdrop-blur-sm mb-2">
+              {company.category}
+            </span>
+            <h3 className="text-white font-bold text-[19px] leading-tight tracking-tight transition-transform duration-220 ease-out group-hover:-translate-y-0.5">
               {company.name}
             </h3>
-            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 11, lineHeight: 1.45, WebkitLineClamp: 2, display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-              {company.description}
-            </p>
+            <p className="text-white/70 text-[13px] mt-1.5 line-clamp-2 leading-relaxed">{company.description}</p>
             {rank && (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
-                <span style={{ fontSize: 10, color: "var(--accent)", fontWeight: 700 }}>🔥 Trending #{rank}</span>
-                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10 }}>· {company.views} views</span>
+              <div className="flex items-center gap-1.5 mt-2.5">
+                <TrendingUp size={12} className="text-accent-400" />
+                <span className="text-meta text-white font-semibold">Trending #{rank}</span>
+                <span className="text-meta text-white/50">· {company.views} views</span>
               </div>
             )}
           </div>
@@ -137,133 +76,76 @@ export default function CompanyCard({ company, rank, variant = "default" }: Prop
     );
   }
 
-  /* ─── COMPACT ──────────────────────────────────────────────────────── */
   if (variant === "compact") {
     return (
       <Link href={`/companies/${company.slug}`}
-        style={{
-          display: "flex", alignItems: "center", gap: 10,
-          padding: "10px 12px", borderRadius: "var(--r-lg)",
-          textDecoration: "none",
-          transition: "background var(--dur-fast)",
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-      >
-        <Logo name={company.name} bg={company.logo_bg} size={34} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {company.name}
-            </span>
-            {company.is_unicorn && <span style={{ fontSize: 11 }}>🦄</span>}
+        className="flex items-center gap-3 p-3 rounded-sm hover:bg-ink-50 transition-colors duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+        <Logo name={company.name} bg={company.logo_bg} size={36} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[14px] font-semibold text-ink-900 truncate">{company.name}</span>
+            {company.is_unicorn && <Sparkles size={12} className="text-accent-500 flex-shrink-0" aria-label="Unicorn" />}
           </div>
-          <p style={{ fontSize: 11, color: "var(--ink-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {company.description}
-          </p>
+          <p className="text-meta text-ink-500 truncate">{company.description}</p>
         </div>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-muted)", flexShrink: 0 }}>
-          {formatFunding(company.total_funding_usd)}
-        </span>
+        <span className="text-meta text-ink-400 flex-shrink-0 tabular-nums">{formatFunding(company.total_funding_usd)}</span>
       </Link>
     );
   }
 
-  /* ─── GRID ─────────────────────────────────────────────────────────── */
   if (variant === "grid") {
     return (
       <Link href={`/companies/${company.slug}`}
-        style={{
-          display: "flex", flexDirection: "column",
-          background: "var(--surface-1)",
-          border: "1px solid var(--hairline)",
-          borderRadius: "var(--r-xl)",
-          overflow: "hidden",
-          textDecoration: "none",
-          transition: "border-color var(--dur-base), transform var(--dur-base) var(--ease-out-expo), box-shadow var(--dur-base)",
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.borderColor = "var(--surface-3)";
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "var(--shadow-md)";
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.borderColor = "var(--hairline)";
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
-        }}
-      >
-        {/* colour banner */}
-        <div style={{ height: 80, position: "relative", background: company.logo_bg, overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.35) 100%)" }} />
-          <div style={{ position: "absolute", right: -8, top: -8, fontSize: 60, fontWeight: 900, color: "rgba(255,255,255,0.07)", lineHeight: 1 }}>
-            {company.name.charAt(0)}
+        className="group flex flex-col rounded-lg overflow-hidden border border-ink-100 hover-lift bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+        <div className="h-32 relative overflow-hidden" style={{ background: company.logo_bg }}>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/25" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-white font-black text-5xl opacity-15 select-none">{company.name.charAt(0)}</span>
           </div>
-          <div style={{ position: "absolute", bottom: 10, left: 12 }}>
-            <Logo name={company.name} bg="rgba(255,255,255,0.12)" size={32} />
+          <div className="absolute bottom-3 left-3">
+            <div className="w-10 h-10 rounded-sm bg-white/15 backdrop-blur-sm ring-1 ring-white/25 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">{company.name.charAt(0)}</span>
+            </div>
           </div>
+          {company.is_unicorn && (
+            <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center" aria-label="Unicorn company">
+              <Sparkles size={14} className="text-accent-500" />
+            </div>
+          )}
         </div>
-
-        <div style={{ padding: "12px 14px 14px", flex: 1, display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.2px" }}>{company.name}</span>
-            {company.is_unicorn && <span style={{ fontSize: 11 }}>🦄</span>}
+        <div className="p-4 flex-1 flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-semibold text-[15px] text-ink-900 truncate">{company.name}</span>
           </div>
-          <CatPill cat={company.category} />
-          <p style={{ fontSize: 11, color: "var(--ink-muted)", lineHeight: 1.5, marginTop: 8, flex: 1, WebkitLineClamp: 2, display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-            {company.description}
-          </p>
-          <div style={{ display: "flex", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--hairline-soft)" }}>
-            <span style={{ fontSize: 11, color: "var(--ink-dim)" }}>{company.founded_year}</span>
-            <span style={{ color: "var(--hairline)" }}>·</span>
-            <span style={{ fontSize: 11, color: "var(--ink-dim)" }}>{company.employee_count}</span>
+          <CategoryPill label={company.category} />
+          <p className="text-[13px] text-ink-500 mt-3 line-clamp-2 leading-relaxed flex-1">{company.description}</p>
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-ink-100">
+            <span className="text-meta text-ink-400">{company.founded_year}</span>
+            <span className="w-1 h-1 rounded-full bg-ink-300" />
+            <span className="text-meta text-ink-400">{company.employee_count}</span>
+            <span className="ml-auto text-meta text-ink-700 font-semibold tabular-nums">{formatFunding(company.total_funding_usd)}</span>
           </div>
         </div>
       </Link>
     );
   }
 
-  /* ─── DEFAULT (table row) ──────────────────────────────────────────── */
   return (
     <Link href={`/companies/${company.slug}`}
-      style={{
-        display: "flex", alignItems: "center", gap: 14,
-        padding: "14px 16px",
-        background: "var(--surface-1)",
-        border: "1px solid var(--hairline)",
-        borderRadius: "var(--r-lg)",
-        textDecoration: "none",
-        transition: "border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast)",
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.borderColor = "var(--surface-3)";
-        e.currentTarget.style.background = "var(--surface-2)";
-        e.currentTarget.style.transform = "translateX(2px)";
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.borderColor = "var(--hairline)";
-        e.currentTarget.style.background = "var(--surface-1)";
-        e.currentTarget.style.transform = "translateX(0)";
-      }}
-    >
-      <Logo name={company.name} bg={company.logo_bg} size={44} />
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)", letterSpacing: "-0.2px" }}>{company.name}</span>
-          {company.is_unicorn && <span style={{ fontSize: 12 }}>🦄</span>}
-          <CatPill cat={company.category} />
+      className="flex items-center gap-3 sm:gap-4 p-4 rounded-lg border border-ink-100 hover-lift bg-white group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
+      <Logo name={company.name} bg={company.logo_bg} size={48} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-semibold text-[15px] text-ink-900 truncate max-w-[140px] sm:max-w-none">{company.name}</span>
+          {company.is_unicorn && <Sparkles size={13} className="text-accent-500 flex-shrink-0" aria-label="Unicorn" />}
+          <span className="hidden sm:inline"><CategoryPill label={company.category} /></span>
         </div>
-        <p style={{ fontSize: 12, color: "var(--ink-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {company.description}
-        </p>
+        <p className="text-[13px] sm:text-[14px] text-ink-500 truncate mt-0.5 sm:mt-0">{company.description}</p>
+        <span className="sm:hidden inline-block mt-1.5"><CategoryPill label={company.category} /></span>
       </div>
-
-      <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.3px", fontFamily: "'DM Mono', monospace" }}>
-          {formatFunding(company.total_funding_usd)}
-        </div>
-        <div style={{ fontSize: 11, color: "var(--ink-dim)", marginTop: 2 }}>{company.stage}</div>
+      <div className="text-right flex-shrink-0">
+        <div className="text-[14px] font-semibold text-ink-900 tabular-nums">{formatFunding(company.total_funding_usd)}</div>
+        <div className="text-meta text-ink-400">{company.stage}</div>
       </div>
     </Link>
   );

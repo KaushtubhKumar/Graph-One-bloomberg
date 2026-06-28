@@ -313,20 +313,42 @@ export async function getNewsByCompanySlug(slug: string): Promise<NewsArticle[]>
 
 // --- Categories (derived client-side from companies; no dedicated endpoint) ---
 
+// Covers every category value actually used across mock + live company data
+// (confirmed against lib/mockData.ts), so real categories don't silently
+// degrade to a generic icon. Add to this map if a new category is introduced.
+const CATEGORY_ICONS: Record<string, string> = {
+  "AI Agents": "🤖",
+  "AI Coding": "💻",
+  "AI Search": "🔍",
+  "AI Video": "🎬",
+  "AI Voice": "🎙",
+  "AI Infrastructure": "⚙️",
+  "AI Image": "🎨",
+  "AI Research": "🧪",
+  "AI Models": "🧠",
+  "AI Education": "🎓",
+  "AI Legal": "⚖️",
+  "AI Content": "📝",
+  "AI Productivity": "⚡",
+  "Healthcare AI": "🏥",
+  "Robotics": "🦾",
+  "Chat": "💬",
+  "Code": "💻",
+  "Image": "🎨",
+  "Video": "🎬",
+  "Voice": "🎙",
+};
+
 export function getCategoriesFromCompanies(allCompanies: Company[]) {
   if (allCompanies.length === 0) return mockCategories;
   const counts = new Map<string, number>();
   allCompanies.forEach(c => {
     counts.set(c.category, (counts.get(c.category) ?? 0) + 1);
   });
-  const icons: Record<string, string> = mockCategories.reduce(
-    (acc, c) => ({ ...acc, [c.name]: c.icon }),
-    {} as Record<string, string>
-  );
   return Array.from(counts.entries()).map(([name, count]) => ({
     name,
     count,
-    icon: icons[name] ?? "✨",
+    icon: CATEGORY_ICONS[name] ?? "✨",
   }));
 }
 

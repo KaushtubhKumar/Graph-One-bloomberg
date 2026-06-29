@@ -446,26 +446,26 @@ export default function CompaniesPage() {
             <div className="animate-fade-up min-w-0">
 
               {/* Ambient stat — huge CountUp */}
-              <div className="mb-3 flex items-end gap-3">
-                <span
-                  className="font-extrabold leading-none text-ink-900 tabular-nums"
-                  style={{ fontSize: "clamp(4.5rem, 9vw + 1rem, 7.5rem)", letterSpacing: "-0.04em" }}
-                >
-                  <CountUp from={0} to={30000} separator="," duration={2} />
-                  <span className="text-accent-500">+</span>
-                </span>
-                <span className="text-[1.1rem] font-semibold text-ink-400 mb-3 leading-tight">
-                  AI companies<br />tracked
-                </span>
-              </div>
+             <div className="mb-4 flex flex-col sm:flex-row sm:items-end gap-1 sm:gap-3">
+  <span
+    className="font-extrabold leading-none text-ink-900 tabular-nums"
+    style={{ fontSize: "clamp(3.5rem, 12vw, 7.5rem)", letterSpacing: "-0.04em" }}
+  >
+    <CountUp from={0} to={30000} separator="," duration={2} />
+    <span className="text-accent-500">+</span>
+  </span>
+  <span className="text-[1rem] font-semibold text-ink-400 sm:mb-3 leading-tight">
+    AI companies<br />tracked
+  </span>
+</div>
 
               <h1
-                className="font-extrabold text-ink-900 mb-5 leading-[1.15] whitespace-nowrap"
-                style={{ fontSize: "clamp(1.1rem, 1.8vw + 0.3rem, 1.75rem)", letterSpacing: "-0.02em" }}
-              >
-                <TypewriterCycle className="text-accent-600" />{" "}
-                <span className="text-ink-900">the world&apos;s most innovative AI companies</span>
-              </h1>
+  className="font-extrabold text-ink-900 mb-5 leading-[1.15]"
+  style={{ fontSize: "clamp(1.25rem, 4vw, 1.75rem)", letterSpacing: "-0.02em" }}
+>
+  <TypewriterCycle className="text-accent-600" />{" "}
+  <span className="text-ink-900">the world&apos;s most innovative AI companies</span>
+            </h1>
               <p className="text-[17px] text-ink-500 leading-relaxed mb-8 max-w-md">
                 Explore AI startups, unicorns, frontier labs, and emerging companies shaping the
                 future of artificial intelligence.

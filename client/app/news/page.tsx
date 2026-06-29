@@ -8,6 +8,8 @@ import {
 import { getNews, getTrendingNews } from "@/lib/api";
 import type { NewsArticle } from "@/lib/types";
 
+export const dynamic='force-dynamic';
+
 const sidebarNav = [
   { icon: Home, label: "Home", href: "/" },
   { icon: Rocket, label: "AI Startups", href: "/companies" },

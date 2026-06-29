@@ -17,9 +17,6 @@ import {
   categories as mockCategories,
 } from "./mockData";
 
-// New types for getCompanyGraph / getCoInvestors / getFeed.
-// Move into ./types.ts if you'd rather keep all types centralized there.
-
 export interface CompanyGraph {
   center: Company;
   investors: Investor[];
@@ -197,7 +194,6 @@ function mapFeedItem(raw: any): FeedItem {
   if (raw.type === "new_company") {
     return { type: "new_company", score: raw.score ?? 0, date: raw.date, data: mapCompany(raw.data ?? {}) };
   }
-  // funding_round
   const d = raw.data ?? {};
   const company = d.company ?? {};
   return {
@@ -262,8 +258,10 @@ function buildMockFeed(): FeedItem[] {
   );
 }
 
-async function fetchJSON(path: string) {
-  const res = await fetch(`${BASE}${path}`, { next: { revalidate: 60 } });
+// UPDATED fetchJSON: Allows overriding the default 60s cache
+async function fetchJSON(path: string, customOptions?: RequestInit) {
+  const options = customOptions || { next: { revalidate: 60 } };
+  const res = await fetch(`${BASE}${path}`, options);
   if (!res.ok) throw new Error(`API error: ${res.status} on ${path}`);
   return res.json();
 }
@@ -296,7 +294,6 @@ export async function getCompanyBySlug(slug: string): Promise<Company | undefine
 export async function getTrendingCompanies(): Promise<Company[]> {
   if (!BASE) return mockCompanies.filter(c => c.trending_rank).sort((a, b) => (a.trending_rank ?? 99) - (b.trending_rank ?? 99));
   try {
-    // Backend may not have /companies/trending yet — try it, fall back to /companies?sort=trending
     const json = await fetchJSON("/companies/trending").catch(() => fetchJSON("/companies?sort=trending&limit=10"));
     const raw = json.data?.companies ?? json.data ?? json;
     return (Array.isArray(raw) ? raw : []).map(mapCompany);
@@ -316,7 +313,6 @@ export async function getFundingRounds(companyId: string): Promise<FundingRound[
   }
 }
 
-// Same endpoint as getFundingRounds — alias for callers using slug-based naming.
 export const getCompanyFundingTimeline = getFundingRounds;
 
 export async function getCompanyGraph(slug: string): Promise<CompanyGraph | undefined> {
@@ -373,7 +369,6 @@ export async function search(q: string): Promise<{ companies: Company[]; investo
       products:  (json.data?.products ?? []).map(mapProduct),
     };
   } catch {
-    // Local fuzzy fallback
     const ql = q.toLowerCase();
     return {
       companies: mockCompanies.filter(c => c.name.toLowerCase().includes(ql)).slice(0, 3),
@@ -438,6 +433,7 @@ export interface NewsPage {
   total: number;
 }
 
+// UPDATED getNews: Now passes { cache: "no-store" } to bypass the default 60s cache
 export async function getNews(opts: { page?: number; pageSize?: number; tag?: string; search?: string } = {}): Promise<NewsPage> {
   const { page = 1, pageSize = 20, tag, search } = opts;
 
@@ -452,7 +448,9 @@ export async function getNews(opts: { page?: number; pageSize?: number; tag?: st
     const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
     if (tag && tag !== "All") params.set("tag", tag);
     if (search) params.set("search", search);
-    const json = await fetchJSON(`/news?${params.toString()}`);
+    
+    // Using no-store cache to force fresh data on pagination clicks
+    const json = await fetchJSON(`/news?${params.toString()}`, { cache: "no-store" });
     const raw = json.data ?? json;
     return {
       data: (Array.isArray(raw) ? raw : []).map(mapNewsArticle),
@@ -482,11 +480,8 @@ export async function getNewsByCompanySlug(slug: string): Promise<NewsArticle[]>
   return data.filter(n => n.related_companies.includes(slug));
 }
 
-// --- Categories (derived client-side from companies; no dedicated endpoint) ---
+// --- Categories ---
 
-// Covers every category value actually used across mock + live company data
-// (confirmed against lib/mockData.ts), so real categories don't silently
-// degrade to a generic icon. Add to this map if a new category is introduced.
 const CATEGORY_ICONS: Record<string, string> = {
   "AI Agents": "🤖",
   "AI Coding": "💻",

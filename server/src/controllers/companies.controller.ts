@@ -16,6 +16,7 @@ const SORT_MAP: Record<ListCompaniesQuery["sort"], { column: string; ascending: 
   funding_desc: { column: "total_funding_usd", ascending: false },
   funding_asc: { column: "total_funding_usd", ascending: true },
   recent_funding: { column: "last_funding_at", ascending: false },
+  trending_score: { column: "growth_score", ascending: false },
 };
 
 export async function listCompanies(req: Request, res: Response) {

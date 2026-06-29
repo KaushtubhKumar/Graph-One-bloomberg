@@ -91,6 +91,23 @@ export default function Navbar() {
               <span className="font-semibold text-ink-900 text-[15px] tracking-tight">GraphOne</span>
             </Link>
 
+            {/* Live Feed — the highest-priority page in the product, so it gets its own
+                always-on CTA instead of blending into the GooeyNav text links. */}
+            <Link
+              href="/feed"
+              className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-sm text-[13px] font-medium flex-shrink-0 transition-all duration-150 ${
+                pathname.startsWith("/feed")
+                  ? "bg-ink-900 text-white ring-2 ring-accent-400"
+                  : "bg-ink-900 text-white hover:bg-ink-800 shadow-xs hover:shadow-sm"
+              }`}
+            >
+              <span className="relative flex h-2 w-2 flex-shrink-0">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-positive opacity-75 animate-pulse" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
+              </span>
+              Live Feed
+            </Link>
+
             {/* Nav links */}
 <div className="hidden lg:block" aria-label="Primary">
   <GooeyNav
@@ -140,6 +157,18 @@ export default function Navbar() {
 
             {/* CTAs */}
             <div className="flex items-center gap-1 flex-shrink-0 ml-auto md:ml-0">
+              <Link
+                href="/feed"
+                className={`lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[13px] font-medium flex-shrink-0 transition-colors duration-150 ${
+                  pathname.startsWith("/feed") ? "bg-ink-900 text-white" : "bg-ink-900 text-white hover:bg-ink-800"
+                }`}
+              >
+                <span className="relative flex h-2 w-2 flex-shrink-0">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-positive opacity-75 animate-pulse" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
+                </span>
+                <span className="hidden sm:inline">Feed</span>
+              </Link>
               <button className="hidden sm:flex items-center text-[14px] text-ink-600 hover:text-ink-900 font-medium px-3 py-2 rounded-sm transition-colors duration-150">
                 Log in
               </button>
@@ -201,6 +230,17 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden border-b border-ink-100 bg-white px-4 py-3 space-y-0.5 animate-fade-up">
+          <Link
+            href="/feed"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-sm text-[14px] font-medium bg-ink-900 text-white mb-1"
+            onClick={() => setMobileOpen(false)}
+          >
+            <span className="relative flex h-2 w-2 flex-shrink-0">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-positive opacity-75 animate-pulse" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
+            </span>
+            Live Feed
+          </Link>
           {navLinks.map(link => {
             const active = pathname.startsWith(link.href);
             return (

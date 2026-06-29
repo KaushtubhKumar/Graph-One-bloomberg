@@ -59,6 +59,7 @@ export const listCompaniesQuerySchema = z.object({
       "funding_desc",
       "funding_asc",
       "recent_funding",
+      "trending_score",
     ])
     .default("recent_funding"),
 });

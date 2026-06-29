@@ -17,6 +17,41 @@ import {
   categories as mockCategories,
 } from "./mockData";
 
+// New types for getCompanyGraph / getCoInvestors / getFeed.
+// Move into ./types.ts if you'd rather keep all types centralized there.
+
+export interface CompanyGraph {
+  center: Company;
+  investors: Investor[];
+  products: Product[];
+  competitors: Company[];
+  funding_rounds: FundingRound[];
+}
+
+export type CoInvestor = Investor & { co_investment_count: number };
+
+export interface FeedNewsData {
+  headline: string;
+  source: string;
+  url: string;
+  tag?: string;
+}
+
+export interface FeedFundingRoundData {
+  company_name: string;
+  company_slug: string;
+  company_website?: string;
+  company_logo_bg: string;
+  round_type: string;
+  amount: number;
+  amount_display?: string;
+}
+
+export type FeedItem =
+  | { type: "news"; score: number; date: string; data: FeedNewsData }
+  | { type: "funding_round"; score: number; date: string; data: FeedFundingRoundData }
+  | { type: "new_company"; score: number; date: string; data: Company };
+
 const BASE = process.env.NEXT_PUBLIC_API_URL;
 
 // Derive a consistent background color from a category string
@@ -144,6 +179,88 @@ function mapFundingRound(r: any): FundingRound {
   };
 }
 
+function mapFeedItem(raw: any): FeedItem {
+  if (raw.type === "news") {
+    return {
+      type: "news",
+      score: raw.score ?? 0,
+      date: raw.date,
+      data: {
+        headline: raw.data?.title ?? raw.data?.headline ?? "",
+        source: raw.data?.source ?? "",
+        url: raw.data?.url ?? "#",
+        tag: raw.data?.tag,
+      },
+    };
+  }
+  if (raw.type === "new_company") {
+    return { type: "new_company", score: raw.score ?? 0, date: raw.date, data: mapCompany(raw.data ?? {}) };
+  }
+  // funding_round
+  const d = raw.data ?? {};
+  const company = d.company ?? {};
+  return {
+    type: "funding_round",
+    score: raw.score ?? 0,
+    date: raw.date,
+    data: {
+      company_name: company.name ?? d.company_name ?? "",
+      company_slug: company.slug ?? d.company_slug ?? "",
+      company_website: company.website ?? d.company_website,
+      company_logo_bg: company.logo_bg ?? d.company_logo_bg ?? categoryBgMap[company.category] ?? "#1a1a2e",
+      round_type: d.round_type ?? "",
+      amount: d.amount_usd ?? d.amount ?? 0,
+      amount_display: d.amount_display,
+    },
+  };
+}
+
+function buildMockGraph(slug: string): CompanyGraph | undefined {
+  const center = mockCompanies.find(c => c.slug === slug);
+  if (!center) return undefined;
+  return {
+    center,
+    investors: mockInvestors.slice(0, 3),
+    products: mockProducts.filter(p => p.company.toLowerCase().replace(/\s+/g, "-") === slug.toLowerCase()),
+    competitors: mockCompanies.filter(c => c.category === center.category && c.slug !== slug).slice(0, 4),
+    funding_rounds: mockRounds.filter(r => r.company_id === center.id),
+  };
+}
+
+function buildMockFeed(): FeedItem[] {
+  const newsItems: FeedItem[] = mockNews.slice(0, 5).map(n => ({
+    type: "news",
+    score: 15,
+    date: n.published_at,
+    data: { headline: n.title, source: n.source, url: n.url, tag: n.tag },
+  }));
+  const fundingItems: FeedItem[] = mockRounds.slice(0, 5).map(r => {
+    const company = mockCompanies.find(c => c.id === r.company_id);
+    return {
+      type: "funding_round",
+      score: 25,
+      date: r.date,
+      data: {
+        company_name: company?.name ?? "Unknown",
+        company_slug: company?.slug ?? "",
+        company_website: company?.website,
+        company_logo_bg: company?.logo_bg ?? "#1a1a2e",
+        round_type: r.round_type,
+        amount: r.amount,
+      },
+    };
+  });
+  const newCoItems: FeedItem[] = mockCompanies.slice(0, 5).map(c => ({
+    type: "new_company",
+    score: 20,
+    date: c.last_funding_at ?? new Date().toISOString(),
+    data: c,
+  }));
+  return [...newsItems, ...fundingItems, ...newCoItems].sort(
+    (a, b) => +new Date(b.date) - +new Date(a.date)
+  );
+}
+
 async function fetchJSON(path: string) {
   const res = await fetch(`${BASE}${path}`, { next: { revalidate: 60 } });
   if (!res.ok) throw new Error(`API error: ${res.status} on ${path}`);
@@ -195,6 +312,26 @@ export async function getFundingRounds(companyId: string): Promise<FundingRound[
     return (Array.isArray(raw) ? raw : []).map(mapFundingRound);
   } catch {
     return mockRounds.filter(r => r.company_id === companyId);
+  }
+}
+
+// Same endpoint as getFundingRounds — alias for callers using slug-based naming.
+export const getCompanyFundingTimeline = getFundingRounds;
+
+export async function getCompanyGraph(slug: string): Promise<CompanyGraph | undefined> {
+  if (!BASE) return buildMockGraph(slug);
+  try {
+    const json = await fetchJSON(`/companies/${slug}/graph`);
+    const raw = json.data ?? json;
+    return {
+      center: mapCompany(raw.center ?? raw),
+      investors: (raw.investors ?? []).map(mapInvestor),
+      products: (raw.products ?? []).map(mapProduct),
+      competitors: (raw.competitors ?? []).map(mapCompany),
+      funding_rounds: (raw.funding_rounds ?? []).map(mapFundingRound),
+    };
+  } catch {
+    return buildMockGraph(slug);
   }
 }
 
@@ -362,5 +499,33 @@ export async function getInvestorInvestments(slug: string): Promise<FundingRound
     return (Array.isArray(raw) ? raw : []).map(mapFundingRound);
   } catch {
     return mockRounds;
+  }
+}
+
+export async function getCoInvestors(slug: string): Promise<CoInvestor[]> {
+  if (!BASE) return mockInvestors.slice(0, 3).map(i => ({ ...i, co_investment_count: 1 }));
+  try {
+    const json = await fetchJSON(`/investors/${slug}/co-investors`);
+    const raw = json.data?.co_investors ?? json.data ?? json;
+    return (Array.isArray(raw) ? raw : []).map((r: any) => ({
+      ...mapInvestor(r.investor ?? r),
+      co_investment_count: r.co_investment_count ?? r.count ?? 0,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+// --- Feed ---
+
+export async function getFeed(page: number = 1): Promise<FeedItem[]> {
+  if (!BASE) return page === 1 ? buildMockFeed() : [];
+  try {
+    const json = await fetchJSON(`/feed?page=${page}`);
+    const raw = json.data?.items ?? json.data ?? json;
+    return (Array.isArray(raw) ? raw : []).map(mapFeedItem);
+  } catch {
+    console.warn("getFeed: falling back to mock data");
+    return page === 1 ? buildMockFeed() : [];
   }
 }

@@ -93,4 +93,5 @@ export interface NewsArticle {
   tag: string;
   related_companies: string[];
   summary: string;
+  view_count?: number;
 }

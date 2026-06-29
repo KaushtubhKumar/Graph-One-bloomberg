@@ -29,7 +29,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   res.json({ data, meta: { page: parseInt(page), page_size: limit, total: count ?? 0 } });
 }));
 
-// GET /news/trending — most recent in last 24h
+// GET /news/trending — most read in last 24h
 router.get('/trending', asyncHandler(async (_req: Request, res: Response) => {
   const cacheKey = 'news:trending';
   const cached = cache.get(cacheKey);
@@ -40,7 +40,7 @@ router.get('/trending', asyncHandler(async (_req: Request, res: Response) => {
     .from('news_articles')
     .select('*')
     .gte('published_at', since)
-    .order('published_at', { ascending: false })
+    .order('view_count', { ascending: false })
     .limit(20);
 
   if (error) throw new ApiException(500, 'DB_ERROR', error.message);
@@ -49,7 +49,7 @@ router.get('/trending', asyncHandler(async (_req: Request, res: Response) => {
   res.json({ data, meta: { cached: false } });
 }));
 
-// GET /news/:id — single article
+// GET /news/:id — single article (records a read for trending purposes)
 router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
   const { data, error } = await supabase
     .from('news_articles')
@@ -58,7 +58,11 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
     .single();
 
   if (error || !data) throw new ApiException(404, 'NOT_FOUND', 'Article not found.');
-  res.json({ data });
+
+  const { data: updated } = await supabase.rpc('increment_news_view_count', { article_id: req.params.id });
+  cache.delete('news:trending');
+
+  res.json({ data: Array.isArray(updated) ? updated[0] : updated ?? data });
 }));
 
 // POST /news (auth required)

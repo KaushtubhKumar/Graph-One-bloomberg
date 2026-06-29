@@ -78,8 +78,21 @@ CREATE TABLE IF NOT EXISTS news_articles (
   created_at          TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE news_articles
+  ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0;
+
 CREATE INDEX IF NOT EXISTS idx_news_published_at ON news_articles(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_news_tag          ON news_articles(tag);
+CREATE INDEX IF NOT EXISTS idx_news_view_count    ON news_articles(view_count DESC);
 
 ALTER TABLE news_articles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "news_public_read" ON news_articles FOR SELECT USING (true);
+
+-- Atomic increment, called on each article read to avoid read-modify-write races.
+CREATE OR REPLACE FUNCTION increment_news_view_count(article_id UUID)
+RETURNS news_articles AS $$
+  UPDATE news_articles
+  SET view_count = view_count + 1
+  WHERE id = article_id
+  RETURNING *;
+$$ LANGUAGE sql VOLATILE;

@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Search, Heart, MessageSquare, ChevronRight, Zap, Home, Rocket, Package, Wallet, Briefcase, Newspaper, TrendingUp, Mail, Trophy, Sparkles, Flame } from "lucide-react";
-import { getProducts } from "@/lib/api";
+import { getProducts, search as apiSearch } from "@/lib/api";
 import Logo from "@/components/shared/Logo";
 import type { Product } from "@/lib/types";
 
@@ -26,6 +26,39 @@ export default function ProductsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("Popular");
   const [loading, setLoading] = useState(true);
+
+  // ── Hero search — was static markup with no state wired up at all ────────
+  type SearchResult = { type: string; name: string; href: string; tag: string };
+  const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      const { companies, investors, products } = await apiSearch(query);
+      setResults([
+        ...companies.slice(0, 3).map(c => ({ type: "Company", name: c.name, href: `/companies/${c.slug}`, tag: c.category })),
+        ...investors.slice(0, 2).map(i => ({ type: "Investor", name: i.name, href: `/investors/${i.slug}`, tag: i.type })),
+        ...products.slice(0, 2).map(p => ({ type: "Product", name: p.name, href: `/products`, tag: p.category })),
+      ]);
+    }, 200); // debounce, same as Navbar
+    return () => clearTimeout(handle);
+  }, [query]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -109,19 +142,48 @@ export default function ProductsPage() {
                     Layer for <span className="text-accent-600">AI.</span>
                   </h1>
                   <p className="text-ink-500 text-sm mb-5">One graph connecting companies, founders, investors, products, funding and talent.</p>
-                  <div className="flex items-center gap-3 bg-white border border-ink-200 rounded-sm px-4 py-3 shadow-sm">
-                    <Search size={16} className="text-ink-400 flex-shrink-0" />
-                    <input className="flex-1 outline-none text-[14px] text-ink-700 placeholder-ink-400 min-w-0"
-                      placeholder="Search companies, founders, investors or products…" />
-                    <button className="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-accent-500 rounded-sm hover:bg-accent-600 transition-colors duration-150">
-                      <ChevronRight size={16} className="text-white" />
-                    </button>
+                  <div ref={searchRef} className="relative">
+                    <div className="flex items-center gap-3 bg-white border border-ink-200 rounded-sm px-4 py-3 shadow-sm">
+                      <Search size={16} className="text-ink-400 flex-shrink-0" />
+                      <input
+                        className="flex-1 outline-none text-[14px] text-ink-700 placeholder-ink-400 min-w-0"
+                        placeholder="Search companies, founders, investors or products…"
+                        value={query}
+                        onChange={e => { setQuery(e.target.value); setSearchOpen(true); }}
+                        onFocus={() => setSearchOpen(true)}
+                      />
+                      <button
+                        onClick={() => setSearchOpen(true)}
+                        className="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-accent-500 rounded-sm hover:bg-accent-600 transition-colors duration-150"
+                      >
+                        <ChevronRight size={16} className="text-white" />
+                      </button>
+                    </div>
+
+                    {searchOpen && results.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-ink-100 overflow-hidden z-50 animate-fade-up">
+                        {results.map((r, i) => (
+                          <Link key={i} href={r.href} onClick={() => { setSearchOpen(false); setQuery(""); }}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-ink-50 transition-colors duration-150">
+                            <span className="text-meta text-ink-400 w-16 flex-shrink-0">{r.type}</span>
+                            <span className="text-[14px] font-medium text-ink-900 truncate">{r.name}</span>
+                            <span className="ml-auto text-meta text-ink-400 flex-shrink-0">{r.tag}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {searchOpen && query.trim().length >= 2 && results.length === 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-ink-100 px-4 py-5 text-center text-[14px] text-ink-400 z-50">
+                        No results for &ldquo;{query}&rdquo;
+                      </div>
+                    )}
                   </div>
                   <div className="mt-3">
                     <p className="text-meta text-ink-400 mb-2">Most searched</p>
                     <div className="flex flex-wrap gap-2">
                       {["Databricks", "Notion", "Framer", "Weaveote", "LangChain"].map(s => (
-                        <button key={s} className="flex items-center gap-1.5 text-meta px-2.5 py-1 bg-ink-100 rounded-full text-ink-600 hover:bg-ink-200 transition-colors duration-150">
+                        <button key={s} onClick={() => { setQuery(s); setSearchOpen(true); }} className="flex items-center gap-1.5 text-meta px-2.5 py-1 bg-ink-100 rounded-full text-ink-600 hover:bg-ink-200 transition-colors duration-150">
                           {s}
                         </button>
                       ))}
@@ -150,28 +212,29 @@ export default function ProductsPage() {
           <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
             {/* Collection of the Week + Product of the Day */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="sm:col-span-2 rounded-lg overflow-hidden bg-ink-900 p-5 text-white relative">
-                <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-accent-500/25 blur-2xl" />
+              <div className="sm:col-span-2 rounded-lg overflow-hidden bg-gradient-to-br from-accent-50 via-white to-accent-100 border border-accent-100 p-5 text-ink-900 relative">
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full bg-accent-400/25 blur-2xl" />
+                <div className="absolute -top-12 -left-12 w-32 h-32 rounded-full bg-positive/15 blur-2xl" />
                 <div className="relative flex items-center gap-2 mb-2">
-                  <span className="inline-flex items-center gap-1 text-meta font-semibold bg-white/15 px-2 py-0.5 rounded-full">
-                    <Flame size={11} className="text-accent-400" /> COLLECTION OF THE WEEK
+                  <span className="inline-flex items-center gap-1 text-meta font-semibold bg-white/80 text-accent-700 px-2 py-0.5 rounded-full">
+                    <Flame size={11} className="text-accent-600" /> COLLECTION OF THE WEEK
                   </span>
                 </div>
                 <div className="relative flex gap-4">
                   <div className="flex-1">
-                    <h3 className="font-bold text-lg leading-tight mb-1">Vibe Coding Tools</h3>
-                    <p className="text-white/60 text-meta mb-3">The best AI tools for vibe coding, building and shipping faster.</p>
+                    <h3 className="font-bold text-lg leading-tight mb-1 text-ink-900">Vibe Coding Tools</h3>
+                    <p className="text-ink-500 text-meta mb-3">The best AI tools for vibe coding, building and shipping faster.</p>
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex -space-x-1.5">
                         {["#312e81", "#9a3412", "#4035c9", "#1e3a5f"].map((bg, i) => (
-                          <div key={i} className="w-6 h-6 rounded-full ring-2 ring-ink-900 flex items-center justify-center text-white text-meta font-bold" style={{ background: bg }}>
+                          <div key={i} className="w-6 h-6 rounded-full ring-2 ring-white flex items-center justify-center text-white text-meta font-bold" style={{ background: bg }}>
                             {String.fromCharCode(65 + i)}
                           </div>
                         ))}
                       </div>
-                      <span className="text-meta text-white/60">2.3M products</span>
+                      <span className="text-meta text-ink-500">2.3M products</span>
                     </div>
-                    <button className="flex items-center gap-1.5 bg-white text-ink-900 text-[14px] font-semibold px-4 py-2 rounded-sm hover:bg-ink-50 transition-colors duration-150">
+                    <button className="flex items-center gap-1.5 bg-ink-900 text-white text-[14px] font-semibold px-4 py-2 rounded-sm hover:bg-ink-800 transition-colors duration-150">
                       Explore collection <ChevronRight size={14} />
                     </button>
                   </div>

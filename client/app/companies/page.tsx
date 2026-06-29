@@ -263,11 +263,6 @@ export default function CompaniesPage() {
   const [categories, setCategories] = useState<{ name: string; count: number; icon: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ── Hero search state ──────────────────────────────────────────────────────
-  const [query, setQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-
   // ── Explore section state ──────────────────────────────────────────────────
   const [exploreQuery, setExploreQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -290,18 +285,6 @@ export default function CompaniesPage() {
     load();
     return () => { active = false; };
   }, []);
-
-  // Click-outside: hero search
-  useEffect(() => {
-    if (!searchOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [searchOpen]);
 
   // Click-outside: category dropdown
   useEffect(() => {
@@ -326,22 +309,6 @@ export default function CompaniesPage() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [sortDropdownOpen]);
-
-  // ── Hero search results ───────────────────────────────────────────────────
-  const heroSearchResults = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return companies
-      .filter(
-        c =>
-          c.name.toLowerCase().includes(q) ||
-          c.category.toLowerCase().includes(q) ||
-          (c.description && c.description.toLowerCase().includes(q)),
-      )
-      .slice(0, 8);
-  }, [query, companies]);
-
-  const isSearching = query.trim().length > 0;
 
   // ── Explore section: combined search + category + sort ────────────────────
   const exploreResults = useMemo(() => {
@@ -454,79 +421,6 @@ export default function CompaniesPage() {
                 Explore AI startups, unicorns, frontier labs, and emerging companies shaping the
                 future of artificial intelligence.
               </p>
-
-              {/* ── Hero Search — fixed overflow ── */}
-              <div ref={searchRef} className="relative w-full max-w-lg">
-                <div className="flex items-center gap-2 glass rounded-lg px-3 py-2 w-full shadow-lg ring-1 ring-white/10">
-                  <Search size={17} className="text-white/50 flex-shrink-0" />
-                  <input
-                    className="flex-1 min-w-0 outline-none text-[15px] text-white placeholder-white/40 bg-transparent"
-                    placeholder="Search companies, categories…"
-                    aria-label="Search AI companies"
-                    value={query}
-                    onChange={e => { setQuery(e.target.value); setSearchOpen(true); }}
-                    onFocus={() => setSearchOpen(true)}
-                  />
-                  {query && (
-                    <button
-                      onClick={() => { setQuery(""); setSearchOpen(false); }}
-                      className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 transition-colors duration-150"
-                      aria-label="Clear search"
-                    >
-                      <X size={11} />
-                    </button>
-                  )}
-                  <button className="flex-shrink-0 px-4 h-9 bg-accent-500 rounded-sm flex items-center justify-center gap-1.5 text-white text-[13px] font-medium hover:bg-accent-600 transition-colors duration-150 shadow-accent whitespace-nowrap">
-                    <span className="hidden sm:inline">Search</span>
-                    <Search size={14} className="sm:hidden" />
-                  </button>
-                </div>
-
-                {/* Live dropdown */}
-                {isSearching && searchOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg border border-ink-100 shadow-lg z-50 overflow-hidden">
-                    {heroSearchResults.length === 0 ? (
-                      <div className="px-4 py-5 text-center text-[14px] text-ink-400">
-                        No companies found for &ldquo;{query}&rdquo;
-                      </div>
-                    ) : (
-                      <>
-                        <div className="px-4 py-2 border-b border-ink-50 text-meta text-ink-400 flex items-center justify-between">
-                          <span>{heroSearchResults.length} result{heroSearchResults.length !== 1 ? "s" : ""}</span>
-                          <button
-                            onClick={() => {
-                              setExploreQuery(query);
-                              setQuery("");
-                              setSearchOpen(false);
-                              document.getElementById("explore-section")?.scrollIntoView({ behavior: "smooth" });
-                            }}
-                            className="text-accent-500 hover:text-accent-600 font-medium text-[12px] transition-colors duration-150"
-                          >
-                            See all in Explore →
-                          </button>
-                        </div>
-                        {heroSearchResults.map(c => (
-                          <Link
-                            key={c.id}
-                            href={`/companies/${c.slug}`}
-                            onClick={() => { setQuery(""); setSearchOpen(false); }}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-ink-50 transition-colors duration-100 group"
-                          >
-                            <Logo name={c.name} website={c.website} bg={c.logo_bg} size={36} />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[14px] font-semibold text-ink-900 truncate">
-                                {c.name}
-                              </div>
-                              <div className="text-meta text-ink-400 truncate">{c.category}</div>
-                            </div>
-                            <ChevronRight size={14} className="text-ink-300 group-hover:text-ink-500 flex-shrink-0" />
-                          </Link>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Floating logo cards */}

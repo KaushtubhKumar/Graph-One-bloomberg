@@ -1,29 +1,33 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
+import {
+  Search, ChevronRight, ArrowRight, Sparkles,
+  Bot, Landmark, Sprout, Zap, Brain, Building2, Code2, HeartPulse,
+  LineChart, UserCheck, BarChart3, Home, User, Briefcase, DollarSign, Package,
+} from "lucide-react";
 import { getInvestors } from "@/lib/api";
 import type { Investor } from "@/lib/types";
 import Logo from "@/components/shared/Logo";
 
 const investorCollections = [
-  { title: "Investors Backing AI Agents", count: 26, icon: "🤖", bg: "#1e3a8a" },
-  { title: "Investors Backing Indian AI Startups", count: 98, icon: "🏛️", bg: "#9a3412" },
-  { title: "Top Seed Investors", count: 274, icon: "🌱", bg: "#065f46" },
-  { title: "Operator Angels", count: 178, icon: "⚡", bg: "#4035c9" },
-  { title: "OpenAI Alumni Investors", count: 42, icon: "🧠", bg: "#292a3a" },
-  { title: "Enterprise AI Investors", count: 84, icon: "🏢", bg: "#1e3a5f" },
-  { title: "Developer Tool Specialists", count: 92, icon: "💻", bg: "#3329a3" },
-  { title: "Healthcare AI Investors", count: 88, icon: "🏥", bg: "#0e7490" },
+  { title: "Investors Backing AI Agents", count: 26, icon: Bot, bg: "#1e3a8a" },
+  { title: "Investors Backing Indian AI Startups", count: 98, icon: Landmark, bg: "#9a3412" },
+  { title: "Top Seed Investors", count: 274, icon: Sprout, bg: "#065f46" },
+  { title: "Operator Angels", count: 178, icon: Zap, bg: "#4035c9" },
+  { title: "OpenAI Alumni Investors", count: 42, icon: Brain, bg: "#292a3a" },
+  { title: "Enterprise AI Investors", count: 84, icon: Building2, bg: "#1e3a5f" },
+  { title: "Developer Tool Specialists", count: 92, icon: Code2, bg: "#3329a3" },
+  { title: "Healthcare AI Investors", count: 88, icon: HeartPulse, bg: "#0e7490" },
 ];
 
 const investorTypes = [
-  { name: "Seed Investors", count: "1,248", icon: "🌱" },
-  { name: "Series A Investors", count: "884", icon: "📈" },
-  { name: "Angel Investors", count: "2,174", icon: "😇" },
-  { name: "Corporate Venture Funds", count: "615", icon: "🏛️" },
-  { name: "Late Stage Investors", count: "432", icon: "📊" },
-  { name: "Family Offices", count: "198", icon: "🏠" },
+  { name: "Seed Investors", count: "1,248", icon: Sprout },
+  { name: "Series A Investors", count: "884", icon: LineChart },
+  { name: "Angel Investors", count: "2,174", icon: UserCheck },
+  { name: "Corporate Venture Funds", count: "615", icon: Landmark },
+  { name: "Late Stage Investors", count: "432", icon: BarChart3 },
+  { name: "Family Offices", count: "198", icon: Home },
 ];
 
 const capitalThemes = [
@@ -38,12 +42,27 @@ const capitalThemes = [
 ];
 
 const graphNodes = [
-  { node: "Investor", icon: "👤" },
-  { node: "Founder", icon: "🧑‍💼" },
-  { node: "Company", icon: "🏢" },
-  { node: "Funding Round", icon: "💰" },
-  { node: "Product", icon: "📦" },
+  { node: "Investor", icon: User },
+  { node: "Founder", icon: Briefcase },
+  { node: "Company", icon: Building2 },
+  { node: "Funding Round", icon: DollarSign },
+  { node: "Product", icon: Package },
 ];
+
+/** Branded dark gradient per investor logo_bg, matching the company-card treatment. */
+function investorCardGradient(bg: string): string {
+  const map: Record<string, string> = {
+    "#1e40af": "linear-gradient(135deg, #3b6fe0 0%, #1e40af 55%, #102868 100%)",
+    "#1e3a5f": "linear-gradient(135deg, #2563a8 0%, #1e3a5f 55%, #0f1f35 100%)",
+    "#16a34a": "linear-gradient(135deg, #22c55e 0%, #16a34a 55%, #0a4d24 100%)",
+    "#dc2626": "linear-gradient(135deg, #ef4444 0%, #dc2626 55%, #7f1d1d 100%)",
+    "#4f46e5": "linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #2c2580 100%)",
+    "#0f172a": "linear-gradient(135deg, #334155 0%, #0f172a 55%, #02060f 100%)",
+    "#0078d4": "linear-gradient(135deg, #2599f5 0%, #0078d4 55%, #00386b 100%)",
+    "#111827": "linear-gradient(135deg, #374151 0%, #111827 55%, #030508 100%)",
+  };
+  return map[bg] ?? `linear-gradient(135deg, ${bg}cc 0%, ${bg} 55%, ${bg}88 100%)`;
+}
 
 function SectionHeader({ num, title, viewAll = true }: { num: number; title: string; viewAll?: boolean }) {
   return (
@@ -159,7 +178,7 @@ export default function InvestorsPage() {
             {investors.map(inv => (
               <Link key={inv.id} href={`/investors/${inv.slug}`}
                 className="group flex flex-col rounded-lg overflow-hidden border border-ink-100 hover-lift bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                <div className="h-20 relative flex items-center justify-center overflow-hidden" style={{ background: inv.logo_bg }}>
+                <div className="h-20 relative flex items-center justify-center overflow-hidden" style={{ background: investorCardGradient(inv.logo_bg) }}>
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/20" />
                   <Logo name={inv.name} website={inv.website} bg={inv.logo_bg} size={44} theme="dark" className="relative" />
                 </div>
@@ -182,9 +201,9 @@ export default function InvestorsPage() {
             {investorCollections.map(col => (
               <Link key={col.title} href="#"
                 className="group relative rounded-lg overflow-hidden h-32 flex flex-col justify-end p-4 hover-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                style={{ background: col.bg }}>
+                style={{ background: investorCardGradient(col.bg) }}>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/0" />
-                <div className="absolute top-4 right-4 text-2xl opacity-25" aria-hidden="true">{col.icon}</div>
+                <col.icon size={22} className="absolute top-4 right-4 text-white/25" aria-hidden="true" />
                 <div className="relative">
                   <h3 className="text-white font-semibold text-[14px] leading-snug">{col.title}</h3>
                   <p className="text-white/60 text-meta mt-1">{col.count} investors</p>
@@ -201,7 +220,7 @@ export default function InvestorsPage() {
             {investorTypes.map(type => (
               <Link key={type.name} href="#"
                 className="flex items-center gap-3.5 p-4 border border-ink-100 rounded-lg hover:border-ink-200 hover:bg-ink-50/60 transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                <span className="text-xl flex-shrink-0" aria-hidden="true">{type.icon}</span>
+                <type.icon size={20} className="text-ink-500 flex-shrink-0" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <div className="text-[14px] font-semibold text-ink-900 truncate">{type.name}</div>
                   <div className="text-meta text-ink-400">{type.count} investors</div>
@@ -266,8 +285,8 @@ export default function InvestorsPage() {
               <div className="flex items-center gap-7 mb-7 overflow-x-auto scrollbar-hide">
                 {graphNodes.map(n => (
                   <div key={n.node} className="flex-shrink-0 flex flex-col items-center gap-2">
-                    <div className="w-11 h-11 rounded-full bg-white/10 ring-1 ring-white/10 flex items-center justify-center text-base">
-                      {n.icon}
+                    <div className="w-11 h-11 rounded-full bg-white/10 ring-1 ring-white/10 flex items-center justify-center">
+                      <n.icon size={18} className="text-white/80" />
                     </div>
                     <span className="text-meta text-white/60 whitespace-nowrap">{n.node}</span>
                   </div>

@@ -163,6 +163,7 @@ function mapNewsArticle(n: any): NewsArticle {
     tag:               n.tag ?? "",
     related_companies: n.related_company_ids ?? n.related_companies ?? [],
     summary:           n.summary ?? "",
+    view_count:        n.view_count ?? undefined,
   };
 }
 
@@ -432,20 +433,53 @@ export async function getProductsByCompanySlug(slug: string): Promise<Product[]>
 
 // --- News ---
 
-export async function getNews(): Promise<NewsArticle[]> {
-  if (!BASE) return mockNews;
+export interface NewsPage {
+  data: NewsArticle[];
+  total: number;
+}
+
+export async function getNews(opts: { page?: number; pageSize?: number; tag?: string; search?: string } = {}): Promise<NewsPage> {
+  const { page = 1, pageSize = 20, tag, search } = opts;
+
+  if (!BASE) {
+    let filtered = tag && tag !== "All" ? mockNews.filter(n => n.tag === tag) : mockNews;
+    if (search) filtered = filtered.filter(n => n.title.toLowerCase().includes(search.toLowerCase()));
+    const start = (page - 1) * pageSize;
+    return { data: filtered.slice(start, start + pageSize), total: filtered.length };
+  }
+
   try {
-    const json = await fetchJSON("/news");
+    const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+    if (tag && tag !== "All") params.set("tag", tag);
+    if (search) params.set("search", search);
+    const json = await fetchJSON(`/news?${params.toString()}`);
+    const raw = json.data ?? json;
+    return {
+      data: (Array.isArray(raw) ? raw : []).map(mapNewsArticle),
+      total: json.meta?.total ?? raw.length,
+    };
+  } catch {
+    let filtered = tag && tag !== "All" ? mockNews.filter(n => n.tag === tag) : mockNews;
+    if (search) filtered = filtered.filter(n => n.title.toLowerCase().includes(search.toLowerCase()));
+    const start = (page - 1) * pageSize;
+    return { data: filtered.slice(start, start + pageSize), total: filtered.length };
+  }
+}
+
+export async function getTrendingNews(): Promise<NewsArticle[]> {
+  if (!BASE) return mockNews.slice().sort((a, b) => (b.view_count ?? 0) - (a.view_count ?? 0)).slice(0, 10);
+  try {
+    const json = await fetchJSON("/news/trending");
     const raw = json.data ?? json;
     return (Array.isArray(raw) ? raw : []).map(mapNewsArticle);
   } catch {
-    return mockNews;
+    return mockNews.slice(0, 10);
   }
 }
 
 export async function getNewsByCompanySlug(slug: string): Promise<NewsArticle[]> {
-  const all = await getNews();
-  return all.filter(n => n.related_companies.includes(slug));
+  const { data } = await getNews({ pageSize: 100 });
+  return data.filter(n => n.related_companies.includes(slug));
 }
 
 // --- Categories (derived client-side from companies; no dedicated endpoint) ---

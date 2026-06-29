@@ -183,10 +183,12 @@ async function seedNews() {
     { title: 'Isomorphic Labs uses AlphaFold 3 to accelerate drug discovery', url: 'https://isomorphiclabs.com/blog/alphafold3', published_at: daysAgo(79), source: 'Isomorphic Labs Blog', tag: 'Research', summary: 'AlphaFold 3 predicts all molecular interactions, unlocking new drug targets.' },
   ];
 
-  // Upsert in batches of 25
+  // Upsert in batches of 25. Seed a plausible view_count so /news/trending has
+  // something to sort by out of the box — real traffic will overtake this via
+  // the increment_news_view_count RPC as articles get read.
   let seeded = 0;
   for (let i = 0; i < articles.length; i += 25) {
-    const batch = articles.slice(i, i + 25);
+    const batch = articles.slice(i, i + 25).map((a) => ({ ...a, view_count: Math.floor(Math.random() * 5000) }));
     const { error } = await supabase.from('news_articles').upsert(batch, { onConflict: 'url' });
     if (error) console.error(`News batch ${i} error:`, error.message);
     else seeded += batch.length;

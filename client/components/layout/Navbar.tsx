@@ -13,7 +13,6 @@ const navLinks = [
   { label: "Products", href: "/products" },
   { label: "Investors", href: "/investors" },
   { label: "Funding", href: "/funding" },
-  { label: "Jobs", href: "/jobs" },
   { label: "News", href: "/news" },
 ];
 
@@ -77,7 +76,7 @@ export default function Navbar() {
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-220 ease-out ${
-        scrolled ? "glass shadow-sm" : "bg-white/0"
+        scrolled ? "bg-white shadow-sm" : "bg-white/0"
       }`}
     >
       <div className={`border-b transition-colors duration-220 ${scrolled ? "border-ink-100" : "border-transparent"}`}>

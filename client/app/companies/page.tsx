@@ -263,6 +263,11 @@ export default function CompaniesPage() {
   const [categories, setCategories] = useState<{ name: string; count: number; icon: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ── Hero search state ──────────────────────────────────────────────────────
+  const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   // ── Explore section state ──────────────────────────────────────────────────
   const [exploreQuery, setExploreQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -285,6 +290,18 @@ export default function CompaniesPage() {
     load();
     return () => { active = false; };
   }, []);
+
+  // Click-outside: hero search
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [searchOpen]);
 
   // Click-outside: category dropdown
   useEffect(() => {
@@ -309,6 +326,22 @@ export default function CompaniesPage() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [sortDropdownOpen]);
+
+  // ── Hero search results ───────────────────────────────────────────────────
+  const heroSearchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return companies
+      .filter(
+        c =>
+          c.name.toLowerCase().includes(q) ||
+          c.category.toLowerCase().includes(q) ||
+          (c.description && c.description.toLowerCase().includes(q)),
+      )
+      .slice(0, 8);
+  }, [query, companies]);
+
+  const isSearching = query.trim().length > 0;
 
   // ── Explore section: combined search + category + sort ────────────────────
   const exploreResults = useMemo(() => {
@@ -392,15 +425,15 @@ export default function CompaniesPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* ============ HERO ============ */}
-      <section className="relative overflow-hidden bg-ink-900">
+      <section className="relative overflow-hidden bg-gradient-to-br from-accent-50 via-white to-white">
         <div className="absolute inset-0">
-          <div className="absolute -top-40 -right-32 w-[560px] h-[560px] rounded-full bg-accent-600/30 blur-[120px]" />
-          <div className="absolute top-20 -left-32 w-[420px] h-[420px] rounded-full bg-accent-500/20 blur-[100px]" />
+          <div className="absolute -top-40 -right-32 w-[560px] h-[560px] rounded-full bg-accent-200/40 blur-[120px]" />
+          <div className="absolute top-20 -left-32 w-[420px] h-[420px] rounded-full bg-accent-100/50 blur-[100px]" />
           <div
-            className="absolute inset-0 opacity-[0.04]"
+            className="absolute inset-0 opacity-[0.035]"
             style={{
               backgroundImage:
-                "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+                "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
               backgroundSize: "44px 44px",
             }}
           />
@@ -409,18 +442,91 @@ export default function CompaniesPage() {
         <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-14">
           <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
             <div className="animate-fade-up min-w-0">
-              <div className="inline-flex items-center gap-2 glass-dark text-white/90 text-meta font-semibold px-3 py-1.5 rounded-full mb-6 ring-1 ring-white/10">
-                <Sparkles size={12} className="text-accent-400" />
+              <div className="inline-flex items-center gap-2 bg-white text-ink-700 text-meta font-semibold px-3 py-1.5 rounded-full mb-6 ring-1 ring-ink-100 shadow-xs">
+                <Sparkles size={12} className="text-accent-500" />
                 30,000+ AI COMPANIES TRACKED
               </div>
-              <h1 className="text-display text-white mb-5">
+              <h1 className="text-display text-ink-900 mb-5">
                 Discover the world's<br />most innovative<br />
-                <span className="text-accent-400">AI companies</span>
+                <span className="text-accent-600">AI companies</span>
               </h1>
-              <p className="text-[17px] text-white/60 leading-relaxed mb-8 max-w-md">
+              <p className="text-[17px] text-ink-500 leading-relaxed mb-8 max-w-md">
                 Explore AI startups, unicorns, frontier labs, and emerging companies shaping the
                 future of artificial intelligence.
               </p>
+
+              {/* ── Hero Search — fixed overflow ── */}
+              <div ref={searchRef} className="relative w-full max-w-lg">
+                <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 w-full shadow-md ring-1 ring-ink-100">
+                  <Search size={17} className="text-ink-400 flex-shrink-0" />
+                  <input
+                    className="flex-1 min-w-0 outline-none text-[15px] text-ink-800 placeholder-ink-400 bg-transparent"
+                    placeholder="Search companies, categories…"
+                    aria-label="Search AI companies"
+                    value={query}
+                    onChange={e => { setQuery(e.target.value); setSearchOpen(true); }}
+                    onFocus={() => setSearchOpen(true)}
+                  />
+                  {query && (
+                    <button
+                      onClick={() => { setQuery(""); setSearchOpen(false); }}
+                      className="flex-shrink-0 w-5 h-5 rounded-full bg-ink-100 hover:bg-ink-200 flex items-center justify-center text-ink-500 transition-colors duration-150"
+                      aria-label="Clear search"
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
+                  <button className="flex-shrink-0 px-4 h-9 bg-accent-500 rounded-sm flex items-center justify-center gap-1.5 text-white text-[13px] font-medium hover:bg-accent-600 transition-colors duration-150 shadow-accent whitespace-nowrap">
+                    <span className="hidden sm:inline">Search</span>
+                    <Search size={14} className="sm:hidden" />
+                  </button>
+                </div>
+
+                {/* Live dropdown */}
+                {isSearching && searchOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg border border-ink-100 shadow-lg z-50 overflow-hidden">
+                    {heroSearchResults.length === 0 ? (
+                      <div className="px-4 py-5 text-center text-[14px] text-ink-400">
+                        No companies found for &ldquo;{query}&rdquo;
+                      </div>
+                    ) : (
+                      <>
+                        <div className="px-4 py-2 border-b border-ink-50 text-meta text-ink-400 flex items-center justify-between">
+                          <span>{heroSearchResults.length} result{heroSearchResults.length !== 1 ? "s" : ""}</span>
+                          <button
+                            onClick={() => {
+                              setExploreQuery(query);
+                              setQuery("");
+                              setSearchOpen(false);
+                              document.getElementById("explore-section")?.scrollIntoView({ behavior: "smooth" });
+                            }}
+                            className="text-accent-500 hover:text-accent-600 font-medium text-[12px] transition-colors duration-150"
+                          >
+                            See all in Explore →
+                          </button>
+                        </div>
+                        {heroSearchResults.map(c => (
+                          <Link
+                            key={c.id}
+                            href={`/companies/${c.slug}`}
+                            onClick={() => { setQuery(""); setSearchOpen(false); }}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-ink-50 transition-colors duration-100 group"
+                          >
+                            <Logo name={c.name} website={c.website} bg={c.logo_bg} size={36} />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[14px] font-semibold text-ink-900 truncate">
+                                {c.name}
+                              </div>
+                              <div className="text-meta text-ink-400 truncate">{c.category}</div>
+                            </div>
+                            <ChevronRight size={14} className="text-ink-300 group-hover:text-ink-500 flex-shrink-0" />
+                          </Link>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Floating logo cards */}
@@ -453,7 +559,7 @@ export default function CompaniesPage() {
                   >
                     <div
                       className="rounded-lg p-[1px] shadow-lg"
-                      style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.15), rgba(255,255,255,0.03))" }}
+                      style={{ background: "linear-gradient(145deg, rgba(0,0,0,0.08), rgba(0,0,0,0.02))" }}
                     >
                       <div
                         className="rounded-lg flex items-center justify-center"
@@ -484,8 +590,8 @@ export default function CompaniesPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`flex-shrink-0 text-[14px] px-4 py-2 rounded-full font-medium transition-all duration-150 ${
                   activeTab === tab
-                    ? "bg-white text-ink-900 shadow-sm"
-                    : "text-white/60 hover:text-white hover:bg-white/10"
+                    ? "bg-ink-900 text-white shadow-sm"
+                    : "text-ink-500 bg-white/70 hover:text-ink-900 hover:bg-white ring-1 ring-ink-100"
                 }`}
               >
                 {tab}

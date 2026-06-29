@@ -452,9 +452,11 @@ export async function getNews(opts: { page?: number; pageSize?: number; tag?: st
     // Using no-store cache to force fresh data on pagination clicks
     const json = await fetchJSON(`/news?${params.toString()}`, { cache: "no-store" });
     const raw = json.data ?? json;
+    const articles = Array.isArray(raw) ? raw : [];
+    const serverTotal = json.meta?.total ?? json.meta?.count ?? json.total ?? json.count;
     return {
-      data: (Array.isArray(raw) ? raw : []).map(mapNewsArticle),
-      total: json.meta?.total ?? raw.length,
+      data: articles.map(mapNewsArticle),
+      total: typeof serverTotal === "number" ? serverTotal : articles.length,
     };
   } catch {
     let filtered = tag && tag !== "All" ? mockNews.filter(n => n.tag === tag) : mockNews;

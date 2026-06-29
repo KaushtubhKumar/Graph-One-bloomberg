@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Search, ChevronRight, ArrowRight, Sparkles,
+  Search, ChevronRight, ArrowRight, Sparkles, TrendingUp, ChevronDown,
   Bot, Landmark, Sprout, Zap, Brain, Building2, Code2, HeartPulse,
   LineChart, UserCheck, BarChart3, Home, User, Briefcase, DollarSign, Package,
 } from "lucide-react";
@@ -10,58 +10,54 @@ import { getInvestors } from "@/lib/api";
 import type { Investor } from "@/lib/types";
 import Logo from "@/components/shared/Logo";
 
+const INITIAL_COUNT = 8;
+const BATCH_SIZE = 8;
+
 const investorCollections = [
-  { title: "Investors Backing AI Agents", count: 26, icon: Bot, bg: "#1e3a8a" },
-  { title: "Investors Backing Indian AI Startups", count: 98, icon: Landmark, bg: "#9a3412" },
-  { title: "Top Seed Investors", count: 274, icon: Sprout, bg: "#065f46" },
-  { title: "Operator Angels", count: 178, icon: Zap, bg: "#4035c9" },
-  { title: "OpenAI Alumni Investors", count: 42, icon: Brain, bg: "#292a3a" },
-  { title: "Enterprise AI Investors", count: 84, icon: Building2, bg: "#1e3a5f" },
-  { title: "Developer Tool Specialists", count: 92, icon: Code2, bg: "#3329a3" },
-  { title: "Healthcare AI Investors", count: 88, icon: HeartPulse, bg: "#0e7490" },
+  { title: "Investors Backing AI Agents",         count: 26,  icon: Bot,        bg: "#ede9fe", accent: "#7c3aed", text: "#4c1d95" },
+  { title: "Investors Backing Indian AI Startups", count: 98,  icon: Landmark,   bg: "#fef3c7", accent: "#d97706", text: "#78350f" },
+  { title: "Top Seed Investors",                   count: 274, icon: Sprout,     bg: "#d1fae5", accent: "#059669", text: "#064e3b" },
+  { title: "Operator Angels",                      count: 178, icon: Zap,        bg: "#e0f2fe", accent: "#0284c7", text: "#0c4a6e" },
+  { title: "OpenAI Alumni Investors",              count: 42,  icon: Brain,      bg: "#fce7f3", accent: "#db2777", text: "#831843" },
+  { title: "Enterprise AI Investors",              count: 84,  icon: Building2,  bg: "#e0e7ff", accent: "#4f46e5", text: "#312e81" },
+  { title: "Developer Tool Specialists",           count: 92,  icon: Code2,      bg: "#f0fdf4", accent: "#16a34a", text: "#14532d" },
+  { title: "Healthcare AI Investors",              count: 88,  icon: HeartPulse, bg: "#fff1f2", accent: "#e11d48", text: "#881337" },
 ];
 
 const investorTypes = [
-  { name: "Seed Investors", count: "1,248", icon: Sprout },
-  { name: "Series A Investors", count: "884", icon: LineChart },
-  { name: "Angel Investors", count: "2,174", icon: UserCheck },
-  { name: "Corporate Venture Funds", count: "615", icon: Landmark },
-  { name: "Late Stage Investors", count: "432", icon: BarChart3 },
-  { name: "Family Offices", count: "198", icon: Home },
+  { name: "Seed Investors",           count: "1,248", icon: Sprout },
+  { name: "Series A Investors",       count: "884",   icon: LineChart },
+  { name: "Angel Investors",          count: "2,174", icon: UserCheck },
+  { name: "Corporate Venture Funds",  count: "615",   icon: Landmark },
+  { name: "Late Stage Investors",     count: "432",   icon: BarChart3 },
+  { name: "Family Offices",           count: "198",   icon: Home },
 ];
 
 const capitalThemes = [
-  { name: "AI Agents", count: "214" },
-  { name: "AI Coding", count: "160" },
-  { name: "AI Infrastructure", count: "88" },
-  { name: "Developer Tools", count: "134" },
-  { name: "Robotics", count: "87" },
-  { name: "Healthcare AI", count: "93" },
-  { name: "Defense AI", count: "41" },
-  { name: "Video AI", count: "43" },
+  { name: "AI Agents",        count: "214" },
+  { name: "AI Coding",        count: "160" },
+  { name: "AI Infrastructure",count: "88"  },
+  { name: "Developer Tools",  count: "134" },
+  { name: "Robotics",         count: "87"  },
+  { name: "Healthcare AI",    count: "93"  },
+  { name: "Defense AI",       count: "41"  },
+  { name: "Video AI",         count: "43"  },
 ];
 
 const graphNodes = [
-  { node: "Investor", icon: User },
-  { node: "Founder", icon: Briefcase },
-  { node: "Company", icon: Building2 },
+  { node: "Investor",      icon: User },
+  { node: "Founder",       icon: Briefcase },
+  { node: "Company",       icon: Building2 },
   { node: "Funding Round", icon: DollarSign },
-  { node: "Product", icon: Package },
+  { node: "Product",       icon: Package },
 ];
 
-/** Branded dark gradient per investor logo_bg, matching the company-card treatment. */
-function investorCardGradient(bg: string): string {
-  const map: Record<string, string> = {
-    "#1e40af": "linear-gradient(135deg, #3b6fe0 0%, #1e40af 55%, #102868 100%)",
-    "#1e3a5f": "linear-gradient(135deg, #2563a8 0%, #1e3a5f 55%, #0f1f35 100%)",
-    "#16a34a": "linear-gradient(135deg, #22c55e 0%, #16a34a 55%, #0a4d24 100%)",
-    "#dc2626": "linear-gradient(135deg, #ef4444 0%, #dc2626 55%, #7f1d1d 100%)",
-    "#4f46e5": "linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #2c2580 100%)",
-    "#0f172a": "linear-gradient(135deg, #334155 0%, #0f172a 55%, #02060f 100%)",
-    "#0078d4": "linear-gradient(135deg, #2599f5 0%, #0078d4 55%, #00386b 100%)",
-    "#111827": "linear-gradient(135deg, #374151 0%, #111827 55%, #030508 100%)",
-  };
-  return map[bg] ?? `linear-gradient(135deg, ${bg}cc 0%, ${bg} 55%, ${bg}88 100%)`;
+/** Format AUM / check-size numbers compactly */
+function fmtMoney(n?: number): string | null {
+  if (!n) return null;
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(0)}M`;
+  return `$${n.toLocaleString()}`;
 }
 
 function SectionHeader({ num, title, viewAll = true }: { num: number; title: string; viewAll?: boolean }) {
@@ -80,9 +76,92 @@ function SectionHeader({ num, title, viewAll = true }: { num: number; title: str
   );
 }
 
+/** Single horizontal investor row — full width, light themed */
+function InvestorRow({ inv, rank }: { inv: Investor; rank: number }) {
+  const aum = fmtMoney(inv.aum);
+  const check = fmtMoney(inv.avg_check_size);
+  return (
+    <Link
+      href={`/investors/${inv.slug}`}
+      className="group flex items-center gap-4 px-4 py-3.5 rounded-lg border border-ink-100 bg-white hover:border-accent-200 hover:bg-accent-50/30 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+    >
+      {/* Rank */}
+      <span className="w-6 text-center text-[13px] font-bold text-ink-300 tabular-nums flex-shrink-0">{rank}</span>
+
+      {/* Logo */}
+      <Logo
+        name={inv.name}
+        website={inv.website}
+        bg={inv.logo_bg}
+        size={40}
+        rounded="rounded-md"
+        theme="light"
+        className="flex-shrink-0"
+      />
+
+      {/* Name + type */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[14px] font-semibold text-ink-900 truncate group-hover:text-accent-600 transition-colors duration-150">
+            {inv.name}
+          </span>
+          {inv.type && (
+            <span className="hidden sm:inline text-meta px-2 py-0.5 bg-ink-100 rounded-full text-ink-500 flex-shrink-0">
+              {inv.type}
+            </span>
+          )}
+        </div>
+        <div className="text-meta text-ink-400 truncate mt-0.5">
+          {inv.sector_focus.slice(0, 3).join(" · ")}
+        </div>
+      </div>
+
+      {/* Stage focus */}
+      <div className="hidden md:flex items-center gap-1.5 flex-shrink-0">
+        {inv.stage_focus.slice(0, 2).map(s => (
+          <span key={s} className="text-meta px-2 py-0.5 bg-accent-50 text-accent-600 rounded-full border border-accent-100">
+            {s}
+          </span>
+        ))}
+      </div>
+
+      {/* Portfolio count */}
+      <div className="hidden lg:flex flex-col items-end flex-shrink-0 w-24">
+        <span className="text-[13px] font-semibold text-ink-900">{inv.portfolio_count}</span>
+        <span className="text-meta text-ink-400">portfolio co.</span>
+      </div>
+
+      {/* AUM or check size */}
+      <div className="hidden xl:flex flex-col items-end flex-shrink-0 w-24">
+        {aum ? (
+          <>
+            <span className="text-[13px] font-semibold text-ink-900">{aum}</span>
+            <span className="text-meta text-ink-400">AUM</span>
+          </>
+        ) : check ? (
+          <>
+            <span className="text-[13px] font-semibold text-ink-900">{check}</span>
+            <span className="text-meta text-ink-400">avg check</span>
+          </>
+        ) : null}
+      </div>
+
+      {/* Location */}
+      <div className="hidden lg:block text-meta text-ink-400 flex-shrink-0 w-28 text-right truncate">
+        {inv.location}
+      </div>
+
+      {/* Arrow */}
+      <ChevronRight size={14} className="text-ink-300 group-hover:text-accent-500 group-hover:translate-x-0.5 transition-all duration-150 flex-shrink-0" />
+    </Link>
+  );
+}
+
 export default function InvestorsPage() {
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -94,14 +173,26 @@ export default function InvestorsPage() {
     return () => { active = false; };
   }, []);
 
+  function handleLoadMore() {
+    setLoadingMore(true);
+    // Simulate a brief async feel — in prod this would fetch the next page
+    setTimeout(() => {
+      setVisibleCount(c => Math.min(c + BATCH_SIZE, investors.length));
+      setLoadingMore(false);
+    }, 280);
+  }
+
+  const visibleInvestors = investors.slice(0, visibleCount);
+  const hasMore = visibleCount < investors.length;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white">
         <div className="max-w-7xl mx-auto px-6 py-16">
           <div className="skeleton rounded-lg h-10 w-80 mb-4" />
           <div className="skeleton rounded-lg h-5 w-96 mb-10" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton rounded-lg h-36" />)}
+          <div className="space-y-2">
+            {Array.from({ length: 8 }).map((_, i) => <div key={i} className="skeleton rounded-lg h-16" />)}
           </div>
         </div>
       </div>
@@ -111,58 +202,52 @@ export default function InvestorsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* ============ HERO ============ */}
-      <section className="relative overflow-hidden bg-ink-900">
+      <section className="relative overflow-hidden bg-gradient-to-br from-accent-50 via-white to-white">
         <div className="absolute inset-0">
-          <div className="absolute -top-40 -left-32 w-[520px] h-[520px] rounded-full bg-accent-600/25 blur-[120px]" />
-          <div className="absolute top-10 right-0 w-[380px] h-[380px] rounded-full bg-accent-500/15 blur-[100px]" />
+          <div className="absolute -top-40 -right-32 w-[560px] h-[560px] rounded-full bg-accent-200/40 blur-[120px]" />
+          <div className="absolute top-20 -left-32 w-[420px] h-[420px] rounded-full bg-accent-100/50 blur-[100px]" />
           <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{ backgroundImage: "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)", backgroundSize: "44px 44px" }}
+            className="absolute inset-0 opacity-[0.035]"
+            style={{ backgroundImage: "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)", backgroundSize: "44px 44px" }}
           />
         </div>
-        <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-14">
+        <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-14">
           <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 items-center min-w-0">
             <div className="animate-fade-up min-w-0">
-              <div className="inline-flex items-center gap-2 glass-dark text-white/90 text-meta font-semibold px-3 py-1.5 rounded-full mb-5 ring-1 ring-white/10">
-                <Sparkles size={12} className="text-accent-400" />
+              <div className="inline-flex items-center gap-2 bg-white text-ink-700 text-meta font-semibold px-3 py-1.5 rounded-full mb-6 ring-1 ring-ink-100 shadow-xs">
+                <Sparkles size={12} className="text-accent-500" />
                 6,000+ INVESTORS TRACKED
               </div>
-              <h1 className="text-display text-white mb-4" style={{ fontSize: "clamp(2.25rem, 4vw + 1rem, 3.5rem)" }}>
-                Discover investors<br />building the<br /><span className="text-accent-400">AI economy</span>
+              <h1 className="text-display text-ink-900 mb-5" style={{ fontSize: "clamp(2.25rem, 4vw + 1rem, 3.5rem)" }}>
+                Discover investors<br />building the<br /><span className="text-accent-600">AI economy</span>
               </h1>
-              <p className="text-[16px] text-white/60 leading-relaxed mb-7 max-w-md">
+              <p className="text-[17px] text-ink-500 leading-relaxed mb-8 max-w-md">
                 Find VCs, angels, operators, corporate funds and emerging managers backing the next generation of AI companies.
               </p>
-              <div className="flex items-center gap-2 glass rounded-lg p-2 w-full max-w-lg shadow-lg ring-1 ring-white/10 mb-4">
-                <Search size={17} className="text-ink-400 ml-2 flex-shrink-0" />
+              <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 w-full max-w-lg shadow-md ring-1 ring-ink-100">
+                <Search size={17} className="text-ink-400 flex-shrink-0" />
                 <input className="flex-1 w-full min-w-0 outline-none text-[15px] text-ink-800 placeholder-ink-400 bg-transparent" placeholder="Search investors, funds, firms…" aria-label="Search investors" />
-                <button className="flex-shrink-0 px-3.5 sm:px-4 h-10 bg-accent-500 rounded-sm flex items-center justify-center gap-1.5 text-white text-[14px] font-medium hover:bg-accent-600 transition-colors duration-150 shadow-accent">
-                  <Search size={15} className="sm:hidden" />
+                <button className="flex-shrink-0 px-4 h-9 bg-accent-500 rounded-sm flex items-center justify-center gap-1.5 text-white text-[13px] font-medium hover:bg-accent-600 transition-colors duration-150 shadow-accent whitespace-nowrap">
+                  <Search size={14} className="sm:hidden" />
                   <span className="hidden sm:inline">Search</span>
                 </button>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-meta text-white/50">Popular:</span>
-                {["AI Agents", "Seed Investors", "Series A", "YC Backers", "India"].map(s => (
-                  <button key={s} className="text-meta px-2.5 py-1 bg-white/10 rounded-full text-white/70 hover:bg-white/15 hover:text-white transition-colors duration-150">{s}</button>
+              <div className="flex items-center gap-2 flex-wrap mt-4">
+                {["a16z", "Sequoia", "Khosla", "Y Combinator", "Lightspeed"].map(tag => (
+                  <span key={tag} className="text-meta px-2.5 py-1 bg-white border border-ink-200 rounded-full text-ink-600 hover:border-accent-300 hover:text-accent-600 cursor-pointer transition-colors duration-150 shadow-xs">
+                    {tag}
+                  </span>
                 ))}
               </div>
             </div>
 
-            {/* Floating investor cards */}
-            <div className="hidden lg:grid grid-cols-3 gap-5" aria-hidden="true">
-              {[
-                { name: "a16z", website: "a16z.com", bg: "#3329a3" },
-                { name: "Sequoia", website: "sequoiacap.com", bg: "#1e3a5f" },
-                { name: "Lightspeed", website: "lsvp.com", bg: "#065f46" },
-                { name: "Catalyst", bg: "#292a3a" },
-                { name: "Khosla", website: "khoslaventures.com", bg: "#9a3412" },
-                { name: "Accel", website: "accel.com", bg: "#4035c9" },
-              ].map((c, i) => (
+            {/* Right: floating investor logos */}
+            <div className="hidden lg:grid grid-cols-3 gap-3">
+              {investors.slice(0, 9).map((inv, i) => (
                 <div key={i}
                   className="animate-float"
                   style={{ marginTop: i % 3 === 1 ? "28px" : i % 3 === 2 ? "10px" : "0px", animationDelay: `${i * 0.45}s`, "--rot": `${(i % 2 === 0 ? -1 : 1) * 2}deg` } as React.CSSProperties}>
-                  <Logo name={c.name} website={c.website} bg={c.bg} size={72} rounded="rounded-lg" theme="dark" className="shadow-lg ring-1 ring-white/10" />
+                  <Logo name={inv.name} website={inv.website} bg={inv.logo_bg} size={72} rounded="rounded-lg" theme="light" className="shadow-md ring-1 ring-ink-100" />
                 </div>
               ))}
             </div>
@@ -171,27 +256,65 @@ export default function InvestorsPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-6">
-        {/* ============ TRENDING INVESTORS ============ */}
+
+        {/* ============ TRENDING INVESTORS — horizontal rows ============ */}
         <section className="py-14 border-b border-ink-100">
-          <SectionHeader num={1} title="Trending investors" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {investors.map(inv => (
-              <Link key={inv.id} href={`/investors/${inv.slug}`}
-                className="group flex flex-col rounded-lg overflow-hidden border border-ink-100 hover-lift bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500">
-                <div className="h-20 relative flex items-center justify-center overflow-hidden" style={{ background: investorCardGradient(inv.logo_bg) }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/20" />
-                  <Logo name={inv.name} website={inv.website} bg={inv.logo_bg} size={44} theme="dark" className="relative" />
-                </div>
-                <div className="p-3 bg-white flex-1 flex flex-col">
-                  <div className="text-[13px] font-semibold text-ink-900 mb-1.5 truncate">{inv.name}</div>
-                  <div className="text-meta text-ink-400 truncate mb-2">{inv.sector_focus.slice(0, 2).join(" · ")}</div>
-                  <span className="mt-auto text-meta text-accent-600 font-semibold flex items-center gap-1 group-hover:gap-1.5 transition-all duration-150">
-                    View portfolio <ChevronRight size={11} />
-                  </span>
-                </div>
-              </Link>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <span className="w-6 h-6 rounded-sm bg-ink-900 text-white text-meta font-semibold flex items-center justify-center flex-shrink-0 tabular-nums">1</span>
+              <h2 className="text-h2 text-ink-900">Trending investors</h2>
+            </div>
+            <div className="flex items-center gap-1.5 text-meta text-ink-400">
+              <TrendingUp size={13} />
+              <span className="hidden sm:inline">Ranked by recent deal flow</span>
+            </div>
+          </div>
+
+          {/* Column headers — desktop only */}
+          <div className="hidden lg:grid grid-cols-[24px_40px_1fr_auto_100px_100px_112px_20px] gap-4 items-center px-4 mb-2">
+            <span />
+            <span />
+            <span className="text-meta text-ink-400 font-medium">Investor</span>
+            <span className="text-meta text-ink-400 font-medium">Stage focus</span>
+            <span className="text-meta text-ink-400 font-medium text-right">Portfolio</span>
+            <span className="text-meta text-ink-400 font-medium text-right">AUM</span>
+            <span className="text-meta text-ink-400 font-medium text-right">Location</span>
+            <span />
+          </div>
+
+          <div className="space-y-1.5">
+            {visibleInvestors.map((inv, i) => (
+              <InvestorRow key={inv.id} inv={inv} rank={i + 1} />
             ))}
           </div>
+
+          {/* Load more / View less */}
+          {(hasMore || visibleCount > INITIAL_COUNT) && (
+            <div className="mt-5 flex items-center gap-3">
+              {hasMore && (
+                <button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="flex items-center gap-2 px-4 py-2.5 border border-ink-200 rounded-lg text-[14px] font-medium text-ink-700 hover:border-accent-300 hover:text-accent-600 hover:bg-accent-50/40 transition-all duration-150 disabled:opacity-50"
+                >
+                  {loadingMore ? (
+                    <>
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-ink-300 border-t-accent-500 animate-spin" />
+                      Loading…
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown size={15} />
+                      Show {Math.min(BATCH_SIZE, investors.length - visibleCount)} more
+                    </>
+                  )}
+                </button>
+              )}
+              <span className="text-meta text-ink-400">
+                Showing {visibleCount} of {investors.length} investors
+              </span>
+            </div>
+          )}
         </section>
 
         {/* ============ INVESTOR COLLECTIONS ============ */}
@@ -200,13 +323,12 @@ export default function InvestorsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {investorCollections.map(col => (
               <Link key={col.title} href="#"
-                className="group relative rounded-lg overflow-hidden h-32 flex flex-col justify-end p-4 hover-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                style={{ background: investorCardGradient(col.bg) }}>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-black/0" />
-                <col.icon size={22} className="absolute top-4 right-4 text-white/25" aria-hidden="true" />
+                className="group relative rounded-lg overflow-hidden h-32 flex flex-col justify-end p-4 border border-ink-100 hover-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 transition-all duration-150"
+                style={{ background: col.bg }}>
+                <col.icon size={22} className="absolute top-4 right-4 opacity-30" style={{ color: col.accent }} aria-hidden="true" />
                 <div className="relative">
-                  <h3 className="text-white font-semibold text-[14px] leading-snug">{col.title}</h3>
-                  <p className="text-white/60 text-meta mt-1">{col.count} investors</p>
+                  <h3 className="font-semibold text-[14px] leading-snug" style={{ color: col.text }}>{col.title}</h3>
+                  <p className="text-meta mt-1" style={{ color: col.accent }}>{col.count} investors</p>
                 </div>
               </Link>
             ))}
@@ -238,7 +360,7 @@ export default function InvestorsPage() {
             {investors.slice(0, 4).map(inv => (
               <div key={inv.id} className="border border-ink-100 rounded-lg p-4 hover-lift bg-white">
                 <div className="flex items-center gap-3 mb-3.5">
-                  <Logo name={inv.name} website={inv.website} bg={inv.logo_bg} size={40} />
+                  <Logo name={inv.name} website={inv.website} bg={inv.logo_bg} size={40} theme="light" />
                   <div className="min-w-0">
                     <div className="text-[14px] font-semibold text-ink-900 truncate">{inv.name}</div>
                     <div className="text-meta text-ink-400">{inv.portfolio_count} portfolio companies</div>
@@ -273,22 +395,23 @@ export default function InvestorsPage() {
 
         {/* ============ CAPITAL GRAPH CTA ============ */}
         <section className="py-14">
-          <div className="rounded-lg bg-ink-900 text-white px-7 py-8 relative overflow-hidden">
-            <div className="absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-accent-500/20 blur-3xl" />
+          <div className="rounded-lg bg-gradient-to-br from-accent-50 via-white to-accent-50/30 border border-accent-100 px-7 py-8 relative overflow-hidden">
+            <div className="absolute -bottom-16 -right-16 w-56 h-56 rounded-full bg-accent-200/60 blur-3xl" />
+            <div className="absolute top-0 left-0 w-40 h-40 rounded-full bg-accent-100/50 blur-2xl" />
             <div className="relative">
               <div className="flex items-center gap-1.5 mb-3">
-                <Sparkles size={13} className="text-accent-400" />
-                <span className="text-accent-400 text-meta font-semibold uppercase tracking-wide">Explore the capital graph</span>
+                <Sparkles size={13} className="text-accent-500" />
+                <span className="text-accent-600 text-meta font-semibold uppercase tracking-wide">Explore the capital graph</span>
               </div>
-              <h3 className="text-h2 text-white mb-2.5 max-w-md">Visualize how capital moves in the AI economy.</h3>
-              <p className="text-white/50 text-[14px] mb-7 max-w-sm leading-relaxed">Explore the relationships between investors, founders, companies, funding rounds, and products.</p>
+              <h3 className="text-h2 text-ink-900 mb-2.5 max-w-md">Visualize how capital moves in the AI economy.</h3>
+              <p className="text-ink-500 text-[14px] mb-7 max-w-sm leading-relaxed">Explore the relationships between investors, founders, companies, funding rounds, and products.</p>
               <div className="flex items-center gap-7 mb-7 overflow-x-auto scrollbar-hide">
                 {graphNodes.map(n => (
                   <div key={n.node} className="flex-shrink-0 flex flex-col items-center gap-2">
-                    <div className="w-11 h-11 rounded-full bg-white/10 ring-1 ring-white/10 flex items-center justify-center">
-                      <n.icon size={18} className="text-white/80" />
+                    <div className="w-11 h-11 rounded-full bg-white ring-1 ring-ink-200 flex items-center justify-center shadow-xs">
+                      <n.icon size={18} className="text-ink-600" />
                     </div>
-                    <span className="text-meta text-white/60 whitespace-nowrap">{n.node}</span>
+                    <span className="text-meta text-ink-500 whitespace-nowrap">{n.node}</span>
                   </div>
                 ))}
               </div>

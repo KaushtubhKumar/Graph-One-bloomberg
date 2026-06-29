@@ -9,6 +9,8 @@ import { getCompanies, getTrendingCompanies, getCategoriesFromCompanies } from "
 import type { Company } from "@/lib/types";
 import Logo from "@/components/shared/Logo";
 import CompanyCard from "@/components/companies/CompanyCard";
+import CountUp from "@/components/shared/CountUp";
+import TypewriterCycle from "@/components/shared/TypewriterCycle";
 
 const tabs = ["AI Agents", "AI Coding", "AI Search", "AI Video", "AI Voice", "AI Infrastructure", "More"];
 const SORT_OPTIONS = [
@@ -440,15 +442,29 @@ export default function CompaniesPage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-14">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-16 items-center">
             <div className="animate-fade-up min-w-0">
-              <div className="inline-flex items-center gap-2 bg-white text-ink-700 text-meta font-semibold px-3 py-1.5 rounded-full mb-6 ring-1 ring-ink-100 shadow-xs">
-                <Sparkles size={12} className="text-accent-500" />
-                30,000+ AI COMPANIES TRACKED
+
+              {/* Ambient stat — huge CountUp */}
+              <div className="mb-3 flex items-end gap-3">
+                <span
+                  className="font-extrabold leading-none text-ink-900 tabular-nums"
+                  style={{ fontSize: "clamp(4.5rem, 9vw + 1rem, 7.5rem)", letterSpacing: "-0.04em" }}
+                >
+                  <CountUp from={0} to={30000} separator="," duration={2} />
+                  <span className="text-accent-500">+</span>
+                </span>
+                <span className="text-[1.1rem] font-semibold text-ink-400 mb-3 leading-tight">
+                  AI companies<br />tracked
+                </span>
               </div>
-              <h1 className="text-display text-ink-900 mb-5">
-                Discover the world's<br />most innovative<br />
-                <span className="text-accent-600">AI companies</span>
+
+              <h1
+                className="font-extrabold text-ink-900 mb-5 leading-[1.15] whitespace-nowrap"
+                style={{ fontSize: "clamp(1.1rem, 1.8vw + 0.3rem, 1.75rem)", letterSpacing: "-0.02em" }}
+              >
+                <TypewriterCycle className="text-accent-600" />{" "}
+                <span className="text-ink-900">the world&apos;s most innovative AI companies</span>
               </h1>
               <p className="text-[17px] text-ink-500 leading-relaxed mb-8 max-w-md">
                 Explore AI startups, unicorns, frontier labs, and emerging companies shaping the
@@ -530,7 +546,7 @@ export default function CompaniesPage() {
             </div>
 
             {/* Floating logo cards */}
-            <div className="hidden lg:grid grid-cols-3 gap-5 relative" aria-hidden="true">
+            <div className="hidden lg:grid grid-cols-3 gap-5 relative w-[340px] flex-shrink-0" aria-hidden="true">
               {[
                 { name: "Cursor", website: "cursor.com", bg: "#312e81" },
                 { name: "OpenAI", website: "openai.com", bg: "#18181b" },

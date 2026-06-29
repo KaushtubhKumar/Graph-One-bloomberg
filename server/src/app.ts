@@ -47,6 +47,7 @@ app.use(express.json());
 // Rate limit: 100 req/min per IP, applied globally before any route logic.
 app.use(rateLimiter);
 
+app.get("/", (_req, res) => res.send("GraphOne API is live and running!"));
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 // ── Extended sub-routes BEFORE base routers (see note above) ────────────────

@@ -289,6 +289,18 @@ curl -X POST http://localhost:4000/api/funding-rounds \
 
 ---
 
+## What would I build next if I had 2 more days?
+
+**Day 1 — Founder Graph & Relationship Intelligence**
+The most valuable signal in the AI ecosystem isn't company metrics — it's people. I'd build a Founder Graph that maps co-founder relationships, prior company overlap, investor→founder→company edges, and alumni networks (YC, OpenAI, Google Brain). Each founder node would link to their portfolio companies, co-investors, and exit history. This turns GraphOne from a directory into an actual intelligence graph — the "bloomberg terminal" part becomes real.
+
+**Day 2 — AI-Powered Deal Flow Digest**
+I'd add a lightweight LLM layer (Claude API) that runs nightly over the news + funding round data and generates a structured "Deal Flow Digest" — a ranked, summarized briefing of the week's most significant funding rounds, product launches, and hiring signals, personalized by the sectors a user has browsed. No raw feed scrolling, just a 5-point brief with confidence scores. This is the feature that would drive daily retention.
+
+**What I intentionally deprioritized (and why)**
+Auth/user accounts, saved watchlists, and email alerts are obvious next steps but are table-stakes SaaS features — any engineer can wire those up. The two above are harder to get right and closer to the core value proposition: making the AI capital market legible at a glance.
+
+
 ## Scripts reference
 
 | Location | Command              | What it does                          |

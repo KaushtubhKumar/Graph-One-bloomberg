@@ -14,7 +14,3 @@ image CDN, keyed by each entity's domain — replacing plain letter-avatars ever
 and silently falls back to the original letter-avatar treatment — nothing breaks, no
 broken-image icons, the UI just looks exactly like it did before for that one logo.
 
-Why logo.dev: Clearbit's free logo API (the old standard for this) was discontinued
-after Clearbit's acquisition by HubSpot. logo.dev is the most widely-adopted drop-in
-replacement (same `<img src="https://img.logo.dev/{domain}">` pattern), with a generous
-free tier (10k requests/month) and no SDK required.
